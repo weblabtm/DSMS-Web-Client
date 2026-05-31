@@ -17,6 +17,19 @@ export const useAuthStore = create((set, get) => ({
   clearError: () => set({ error: null }),
 
   /**
+   * Persist a session returned from auth APIs.
+   */
+  setSession: (session) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+    set({
+      user: session,
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
+    })
+  },
+
+  /**
    * Initialize store: Restore session from localStorage and refresh the token
    */
   initStore: async () => {
@@ -56,13 +69,8 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const session = await authApi.login({ identifier, password, tenantId, branchId })
-      
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-      set({
-        user: session,
-        isAuthenticated: true,
-        isLoading: false,
-      })
+
+      get().setSession(session)
       return session
     } catch (err) {
       const message = err.message || 'An error occurred during sign in'
@@ -82,12 +90,7 @@ export const useAuthStore = create((set, get) => ({
         inviterToken
       )
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-      set({
-        user: session,
-        isAuthenticated: true,
-        isLoading: false,
-      })
+      get().setSession(session)
       return session
     } catch (err) {
       const message = err.message || 'An error occurred during registration'
@@ -105,16 +108,12 @@ export const useAuthStore = create((set, get) => ({
 
     try {
       const newSession = await authApi.refreshSession(user.refreshToken)
-      
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newSession))
-      set({
-        user: newSession,
-        isAuthenticated: true,
-      })
+
+      get().setSession(newSession)
       return newSession
     } catch (err) {
       console.error('Token refresh failed:', err)
-      
+
       // If refresh failed due to token expiration or invalidity (401/403/400), log out
       if (err.status === 400 || err.status === 401 || err.status === 403) {
         get().logout()

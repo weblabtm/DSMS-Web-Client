@@ -11,7 +11,7 @@ import { useAuthStore } from '../store/authStore'
  */
 export function canInviteRole(inviterRole, targetRole) {
   if (!inviterRole) return false
-  
+
   switch (inviterRole) {
     case 'Super Admin':
       return targetRole === 'Tenant Admin'
@@ -32,7 +32,7 @@ export function canInviteRole(inviterRole, targetRole) {
  */
 export function useAuth() {
   const store = useAuthStore()
-  
+
   // Extract primary role (users typically have 1 primary role in our setup)
   const currentRole = store.user?.roles?.[0] || null
 
@@ -58,7 +58,7 @@ export function useAuth() {
     isLoading: store.isLoading,
     isInitialized: store.isInitialized,
     error: store.error,
-    
+
     // Actions
     login: store.login,
     register: store.register,
@@ -66,7 +66,8 @@ export function useAuth() {
     refreshToken: store.refreshToken,
     initStore: store.initStore,
     clearError: store.clearError,
-    
+    setSession: store.setSession,
+
     // Role-based invitation utilities
     currentRole,
     canInviteRole: userCanInvite,

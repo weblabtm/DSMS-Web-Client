@@ -1,29 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { 
-  Sparkles, 
-  Eye, 
-  EyeOff, 
-  Lock, 
-  User, 
-  Server, 
-  ShieldCheck, 
-  UserCheck, 
-  AlertCircle, 
-  ArrowRight, 
+import {
+  Sparkles,
+  Eye,
+  EyeOff,
+  Lock,
+  ShieldCheck,
+  AlertCircle,
+  ArrowRight,
   ArrowLeft,
   Mail,
   Key,
   Building,
-  CheckCircle2,
-  Terminal,
   Loader2,
   Check,
   X
 } from 'lucide-react'
 import { useAuth } from '../shared/hooks/useAuth'
 import { Button } from '../shared/ui/button.jsx'
-import { createTenant } from '../shared/api/authApi.js'
+import { createTenant, register as registerTenantAdmin } from '../shared/api/authApi.js'
 
 // Helper to decode JWT token safely
 const decodeToken = (token) => {
@@ -72,7 +67,7 @@ const slugify = (text) => {
 }
 
 export default function Register() {
-  const { register, isAuthenticated, isLoading, error, clearError } = useAuth()
+  const { register, setSession, isAuthenticated, isLoading, error, clearError } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const inviteToken = searchParams.get('token')
@@ -86,25 +81,26 @@ export default function Register() {
   // Core Registration States
   // ─────────────────────────────────────────────────────────────────────────────
   const [step, setStep] = useState(1) // Wizard steps: 1, 2, 3 (Only in Public mode)
-  
+
   // Step 1: School Administration Account
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  
+
   // Step 1.5: Email Verification Modal
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
   const [emailVerificationInput, setEmailVerificationInput] = useState('')
   const [mockVerificationCode] = useState('5588') // Mocked code
   const [verificationError, setVerificationError] = useState('')
-  
+  const [otpDispatchStatus, setOtpDispatchStatus] = useState('')
+
   // Step 2: Tenet Creation ("Create your Learners")
   const [schoolName, setSchoolName] = useState('')
-  const [tenantId, setTenantId] = useState(inviterInfo?.tenantId || '')
-  const [branchId, setBranchId] = useState(inviterInfo?.branchId || '')
-  
+  const [tenantId, setTenantId] = useState(() => inviterInfo?.tenantId || '')
+  const [branchId] = useState(() => inviterInfo?.branchId || '')
+
   // Slug checker system (Debounced)
   const [isSlugChecking, setIsSlugChecking] = useState(false)
   const [isSlugAvailable, setIsSlugAvailable] = useState(null) // null, true, false
@@ -114,15 +110,18 @@ export default function Register() {
   // General layout states
   const [validationError, setValidationError] = useState('')
   const [deploymentLogs, setDeploymentLogs] = useState([])
+  const [tenantAdminSession, setTenantAdminSession] = useState(null)
+  const [isProvisioningAdmin, setIsProvisioningAdmin] = useState(false)
+  const [isDeployingSchool, setIsDeployingSchool] = useState(false)
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Effects & Listeners
   // ─────────────────────────────────────────────────────────────────────────────
-  
+
   // Clear error layers on load
   useEffect(() => {
     clearError()
-  }, [])
+  }, [clearError])
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -131,38 +130,22 @@ export default function Register() {
     }
   }, [isAuthenticated, navigate])
 
-  // Sync state if invited token properties change
-  useEffect(() => {
-    if (inviterInfo) {
-      if (inviterInfo.tenantId) setTenantId(inviterInfo.tenantId)
-      if (inviterInfo.branchId) setBranchId(inviterInfo.branchId)
-      if (permittedRoles.length > 0) setSelectedRole(permittedRoles[0])
-    }
-  }, [inviteToken])
-
   // Automatically generate and check slug when driving school name is modified
   const handleSchoolNameChange = (val) => {
     setSchoolName(val)
     if (!isInvitedMode) {
       const generatedSlug = slugify(val)
       setTenantId(generatedSlug)
+      setIsSlugAvailable(null)
+      setIsSlugChecking(generatedSlug.length >= 3)
     }
   }
 
   // Debounced Slug Availability Check
   useEffect(() => {
-    if (isInvitedMode || !tenantId) {
-      setIsSlugAvailable(null)
+    if (isInvitedMode || !tenantId || tenantId.length < 3) {
       return
     }
-
-    if (tenantId.length < 3) {
-      setIsSlugAvailable(false)
-      return
-    }
-
-    setIsSlugChecking(true)
-    setIsSlugAvailable(null)
 
     if (slugDebounceRef.current) {
       clearTimeout(slugDebounceRef.current)
@@ -172,7 +155,7 @@ export default function Register() {
       // Reserved taken slugs simulation
       const reservedSlugs = ['admin', 'test', 'dsms', 'google', 'facebook', 'root', 'saas', 'server']
       const isTaken = reservedSlugs.includes(tenantId.toLowerCase())
-      
+
       setIsSlugChecking(false)
       setIsSlugAvailable(!isTaken)
     }, 600)
@@ -183,7 +166,7 @@ export default function Register() {
   // ─────────────────────────────────────────────────────────────────────────────
   // Navigation & Submit Handlers
   // ─────────────────────────────────────────────────────────────────────────────
-  
+
   const validateStep1 = () => {
     setValidationError('')
     if (!identifier || !password || !confirmPassword) {
@@ -207,17 +190,38 @@ export default function Register() {
     return true
   }
 
-  const handleStep1Next = (e) => {
+  const handleStep1Next = async (e) => {
     e.preventDefault()
-    if (validateStep1()) {
+    if (!validateStep1()) {
+      return
+    }
+
+    setValidationError('')
+    setVerificationError('')
+    setIsProvisioningAdmin(true)
+
+    try {
+      const session = await registerTenantAdmin({
+        identifier,
+        password,
+        role: 'Tenant Admin',
+      })
+
+      setTenantAdminSession(session)
+      setOtpDispatchStatus(`An OTP has been sent to ${identifier} after your account was created.`)
       setIsEmailModalOpen(true)
-      setVerificationError('')
+      setEmailVerificationInput('')
+    } catch (err) {
+      setValidationError(err?.message || 'Unable to create the tenant admin account.')
+    } finally {
+      setIsProvisioningAdmin(false)
     }
   }
 
   const handleVerifyEmailCode = (e) => {
     e.preventDefault()
     if (emailVerificationInput === mockVerificationCode) {
+      setVerificationError('')
       setIsEmailModalOpen(false)
       setStep(2)
       setValidationError('')
@@ -251,6 +255,13 @@ export default function Register() {
   const handleDeploySchool = async (e) => {
     e.preventDefault()
     setValidationError('')
+
+    if (!tenantAdminSession?.accessToken) {
+      setValidationError('Create the tenant admin account first. The school cannot be deployed without the returned token.')
+      return
+    }
+
+    setIsDeployingSchool(true)
     setDeploymentLogs([
       'Initialising school server deployment...',
       'Provisioning School Administration account...',
@@ -274,31 +285,24 @@ export default function Register() {
 
     setTimeout(async () => {
       try {
-        // ── Step 1: Create the Tenant Admin account (no tenantId at this point) ──
-        const session = await register(
-          {
-            identifier,
-            password,
-            role: 'Tenant Admin',
-            // tenantId deliberately omitted — server assigns it after tenant creation
-          },
-          null // no inviter token for self-registration
-        )
-
-        setDeploymentLogs(prev => [...prev, '✓ Administration account deployed successfully.'])
+        setDeploymentLogs(prev => [...prev, '✓ Administration token confirmed.'])
 
         // ── Step 2: Create the tenant using the fresh accessToken ──
-        await createTenant(schoolName, identifier, session.accessToken)
+        await createTenant(schoolName, identifier, tenantAdminSession.accessToken)
 
         setDeploymentLogs(prev => [...prev, `✓ School node "${schoolName}" activated and linked.`])
         setDeploymentLogs(prev => [...prev, 'Redirecting to control center...'])
+
+        setSession(tenantAdminSession)
 
         setTimeout(() => navigate('/dashboard'), 800)
       } catch (err) {
         setValidationError(err.message || 'Deployment node configuration failed.')
         setDeploymentLogs([])
+      } finally {
+        setIsDeployingSchool(false)
       }
-    }, 2000)
+    }, 1200)
   }
 
   // Handle registration for invited users (Single-step flow)
@@ -328,7 +332,7 @@ export default function Register() {
         inviteToken
       )
       navigate('/dashboard')
-    } catch (err) {
+    } catch {
       // Handled by store error state
     }
   }
@@ -363,7 +367,7 @@ export default function Register() {
               <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-400" />
               <div className="leading-relaxed">
                 <span className="font-bold text-emerald-200 block mb-0.5">Invitation Verified</span>
-                You are invited by a <span className="font-bold text-white uppercase">{inviterInfo.role}</span>. 
+                You are invited by a <span className="font-bold text-white uppercase">{inviterInfo.role}</span>.
                 Your school tenancy context is pre-configured and locked.
               </div>
             </div>
@@ -541,7 +545,7 @@ export default function Register() {
 
         {/* Wizard Main Card */}
         <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-8 backdrop-blur-xl shadow-2xl shadow-indigo-950/20 relative">
-          
+
           {/* Stepper Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between text-xs text-slate-500 font-bold uppercase tracking-wider">
@@ -549,11 +553,11 @@ export default function Register() {
               <span className={step >= 2 ? 'text-indigo-400 font-extrabold' : ''}>2. School Node</span>
               <span className={step >= 3 ? 'text-indigo-400 font-extrabold' : ''}>3. Deploy</span>
             </div>
-            
+
             {/* Stepper Progress Bar */}
             <div className="mt-2.5 h-1 w-full bg-slate-950 rounded-full overflow-hidden flex">
-              <div 
-                className="h-full bg-gradient-to-r from-indigo-600 to-blue-500 transition-all duration-300 shadow-md shadow-indigo-500/50" 
+              <div
+                className="h-full bg-gradient-to-r from-indigo-600 to-blue-500 transition-all duration-300 shadow-md shadow-indigo-500/50"
                 style={{ width: `${((step - 1) / 2) * 100}%` }}
               />
             </div>
@@ -652,8 +656,21 @@ export default function Register() {
               </div>
 
               {/* Next Button */}
-              <Button type="submit" className="w-full h-11 flex items-center justify-center gap-2 mt-2">
-                Continue Setup <ArrowRight className="h-4 w-4" />
+              <Button
+                type="submit"
+                disabled={isProvisioningAdmin}
+                className="w-full h-11 flex items-center justify-center gap-2 mt-2"
+              >
+                {isProvisioningAdmin ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    Continue Setup <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
               </Button>
             </form>
           )}
@@ -698,7 +715,7 @@ export default function Register() {
                     onChange={(e) => setTenantId(slugify(e.target.value))}
                     className="w-full h-11 pl-4 pr-12 rounded-lg border border-slate-800 bg-slate-950/50 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-all duration-200 font-mono"
                   />
-                  
+
                   {/* Status Indicator */}
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                     {isSlugChecking && (
@@ -737,18 +754,18 @@ export default function Register() {
 
               {/* Stepper Actions */}
               <div className="flex gap-4 pt-2">
-                <Button 
-                  type="button" 
-                  onClick={() => setStep(1)} 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  variant="outline"
                   className="flex-1 h-11 border-slate-800 hover:bg-slate-900 text-slate-300"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2 inline" /> Back
                 </Button>
-                
-                <Button 
-                  type="submit" 
-                  disabled={isSlugAvailable === false || !schoolName} 
+
+                <Button
+                  type="submit"
+                  disabled={isSlugAvailable === false || !schoolName}
                   className="flex-1 h-11 flex items-center justify-center gap-2"
                 >
                   Confirm Node <ArrowRight className="h-4 w-4" />
@@ -816,20 +833,30 @@ export default function Register() {
 
                   {/* Deploy Actions */}
                   <div className="flex gap-4 pt-2">
-                    <Button 
-                      type="button" 
-                      onClick={() => setStep(2)} 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      onClick={() => setStep(2)}
+                      variant="outline"
                       className="flex-1 h-11 border-slate-800 hover:bg-slate-900 text-slate-300"
                     >
                       <ArrowLeft className="h-4 w-4 mr-2 inline" /> Back
                     </Button>
-                    
-                    <Button 
+
+                    <Button
                       onClick={handleDeploySchool}
+                      disabled={!tenantAdminSession?.accessToken || isDeployingSchool}
                       className="flex-1 h-11 flex items-center justify-center gap-2"
                     >
-                      Deploy your Driving School <Sparkles className="h-4 w-4 text-indigo-200" />
+                      {isDeployingSchool ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin text-indigo-200" />
+                          Deploying School...
+                        </>
+                      ) : (
+                        <>
+                          Deploy your Driving School <Sparkles className="h-4 w-4 text-indigo-200" />
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -855,16 +882,20 @@ export default function Register() {
       {isEmailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
           <div className="w-full max-w-md rounded-2xl border border-indigo-900/40 bg-slate-900/60 p-8 backdrop-blur-xl shadow-2xl shadow-indigo-950/30 text-center animate-in scale-in-95 duration-200">
-            
+
             {/* Modal Icon */}
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600/10 text-indigo-400 shadow-lg shadow-indigo-500/10 border border-indigo-500/20">
               <Mail className="h-6 w-6" />
             </div>
 
             <h3 className="text-xl font-bold text-white mb-2">Verify your Email</h3>
-            
+
             <p className="text-xs leading-relaxed text-slate-400 mb-6">
-              A temporary authentication key has been dispatched to <span className="font-semibold text-slate-200">{identifier}</span>. Enter the verification code to activate your admin node.
+              {otpDispatchStatus || (
+                <>
+                  Your tenant admin account has been created for <span className="font-semibold text-slate-200">{identifier}</span>. Enter the verification code to continue with school setup.
+                </>
+              )}
             </p>
 
             <form onSubmit={handleVerifyEmailCode} className="space-y-4 text-left">
@@ -902,16 +933,16 @@ export default function Register() {
 
               {/* Modal Buttons */}
               <div className="flex gap-4 pt-2">
-                <Button 
-                  type="button" 
-                  onClick={() => setIsEmailModalOpen(false)} 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  onClick={() => setIsEmailModalOpen(false)}
+                  variant="outline"
                   className="flex-1 h-11 border-slate-800 hover:bg-slate-900 text-slate-300"
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={emailVerificationInput.length < 4}
                   className="flex-1 h-11"
                 >
