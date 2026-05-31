@@ -541,33 +541,33 @@ export default function Landing() {
                             {[
                                 {
                                     quote: 'Before adopting DSMS, planning weekly rosters for our 18 active driving instructors was a logistical nightmare. Now, calendar schedules are synced, double-bookings are impossible, and students can view lessons directly.',
-                  initials: 'ML', bg: 'bg-indigo-500',
-                            name: 'Markus Laurent', role: 'Director, Apex Academy (Munich)',
-                },
-                            {
-                                quote: 'The dynamic billing reconciler changed everything for our accounts. Handling cash and cards, generating custom invoices on checkpoints, and calculating staff commissions used to take days. Now it runs instantly.',
-                            initials: 'SF', bg: 'bg-blue-500',
-                            name: 'Sophia Flores', role: 'Operations Manager, Metro Drive (San Jose)',
-                },
-                            ].map(({quote, initials, bg, name, role}) => (
-                            <div key={name} className="rounded-2xl border border-slate-800 bg-slate-900/10 p-6 sm:p-8 md:p-10 flex flex-col items-center text-center">
-                                <div className="flex gap-1 mb-5 sm:mb-6">
-                                    {Array.from({ length: 5 }).map((_, i) => (
-                                        <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-indigo-400 text-indigo-400" />
-                                    ))}
+                                    initials: 'ML', bg: 'bg-indigo-500',
+                                    name: 'Markus Laurent', role: 'Director, Apex Academy (Munich)',
+                                },
+                                {
+                                    quote: 'The dynamic billing reconciler changed everything for our accounts. Handling cash and cards, generating custom invoices on checkpoints, and calculating staff commissions used to take days. Now it runs instantly.',
+                                    initials: 'SF', bg: 'bg-blue-500',
+                                    name: 'Sophia Flores', role: 'Operations Manager, Metro Drive (San Jose)',
+                                },
+                            ].map(({ quote, initials, bg, name, role }) => (
+                                <div key={name} className="rounded-2xl border border-slate-800 bg-slate-900/10 p-6 sm:p-8 md:p-10 flex flex-col items-center text-center">
+                                    <div className="flex gap-1 mb-5 sm:mb-6">
+                                        {Array.from({ length: 5 }).map((_, i) => (
+                                            <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-indigo-400 text-indigo-400" />
+                                        ))}
+                                    </div>
+                                    <blockquote className="text-sm sm:text-base md:text-lg font-medium text-slate-200 leading-relaxed mb-5 sm:mb-6">
+                                        "{quote}"
+                                    </blockquote>
+                                    <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full ${bg} flex items-center justify-center font-bold text-white text-xs sm:text-sm mb-2.5 sm:mb-3`}>
+                                        {initials}
+                                    </div>
+                                    <cite className="not-italic">
+                                        <span className="block font-bold text-white text-xs sm:text-sm">{name}</span>
+                                        <span className="block text-[10px] sm:text-xs text-slate-500 mt-0.5">{role}</span>
+                                    </cite>
                                 </div>
-                                <blockquote className="text-sm sm:text-base md:text-lg font-medium text-slate-200 leading-relaxed mb-5 sm:mb-6">
-                                    "{quote}"
-                                </blockquote>
-                                <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full ${bg} flex items-center justify-center font-bold text-white text-xs sm:text-sm mb-2.5 sm:mb-3`}>
-                                    {initials}
-                                </div>
-                                <cite className="not-italic">
-                                    <span className="block font-bold text-white text-xs sm:text-sm">{name}</span>
-                                    <span className="block text-[10px] sm:text-xs text-slate-500 mt-0.5">{role}</span>
-                                </cite>
-                            </div>
-              ))}
+                            ))}
                         </Carousel>
                     </div>
                 </div>
