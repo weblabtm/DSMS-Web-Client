@@ -12,7 +12,7 @@
  *   POST /auth/logout      – no auth required (fire-and-forget on server)
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
+import { getRuntimeApiBaseUrl } from '../config/runtime-config.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Error type
@@ -40,7 +40,7 @@ async function request(path, { method = 'POST', body, token } = {}) {
   const headers = { 'Content-Type': 'application/json' }
   if (token) headers['Authorization'] = `Bearer ${token}`
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${getRuntimeApiBaseUrl()}${path}`, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -141,13 +141,26 @@ export async function logout(refreshToken) {
  * database and we have a valid accessToken to authenticate this request.
  *
  * @param {string} name                   Human-readable school name (e.g. "Zenith Academy")
+ * @param {string} slug                   Tenant slug used for wildcard subdomains
  * @param {string} tenantAdminIdentifier  Email of the Tenant Admin account created in step 1
  * @param {string} accessToken            Bearer token returned from /auth/register
- * @returns {Promise<{ id: string; name: string; isActive: boolean; createdAt: string; updatedAt: string }>}
+ * @returns {Promise<{ id: string; name: string; slug?: string | null; isActive: boolean; createdAt: string; updatedAt: string }>} 
  */
-export async function createTenant(name, tenantAdminIdentifier, accessToken) {
+export async function createTenant(name, slug, tenantAdminIdentifier, accessToken) {
   return request('/tenant', {
-    body: { name, tenantAdminIdentifier },
+    body: { name, slug, tenantAdminIdentifier },
     token: accessToken,
+  })
+}
+
+/**
+ * Check whether a tenant slug is available.
+ *
+ * @param {string} slug
+ * @returns {Promise<{ slug: string; available: boolean; reason?: 'invalid' | 'reserved' | 'taken' }>}
+ */
+export async function checkTenantSlugAvailability(slug) {
+  return request(`/tenant/slug/${encodeURIComponent(slug)}/availability`, {
+    method: 'GET',
   })
 }

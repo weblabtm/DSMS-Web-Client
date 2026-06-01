@@ -1,12 +1,20 @@
 import React from 'react'
-import { Navigate, useLocation, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ShieldAlert, ArrowLeft, LogOut } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { Button } from './button'
+import { buildBaseHostUrl, buildTenantPath } from '../config/runtime-config'
+
+function BaseHostRedirect({ to }) {
+  React.useEffect(() => {
+    window.location.replace(buildBaseHostUrl(to))
+  }, [to])
+
+  return null
+}
 
 export function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, isInitialized, user, logout } = useAuth()
-  const location = useLocation()
 
   // 1. Wait for store initialization (localStorage check + background refresh)
   if (!isInitialized) {
@@ -16,7 +24,7 @@ export function ProtectedRoute({ children, allowedRoles }) {
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] -translate-x-1/2 -translate-y-1/2 bg-indigo-600/10 rounded-full blur-[100px]" />
         </div>
-        
+
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent shadow-lg shadow-indigo-500/20" />
           <p className="text-sm font-semibold tracking-wide text-slate-400">Verifying session...</p>
@@ -27,14 +35,14 @@ export function ProtectedRoute({ children, allowedRoles }) {
 
   // 2. Redirect to /login if unauthenticated
   if (!isAuthenticated || !user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <BaseHostRedirect to="/login" />
   }
 
   // 3. Role verification (if roles are restricted)
   if (allowedRoles && allowedRoles.length > 0) {
     const userRoles = user.roles || []
     const hasPermission = userRoles.some(role => allowedRoles.includes(role))
-    
+
     if (!hasPermission) {
       return (
         <div className="relative flex min-h-screen items-center justify-center bg-slate-950 text-slate-100 px-4">
@@ -50,18 +58,18 @@ export function ProtectedRoute({ children, allowedRoles }) {
             <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
               Access Denied
             </h1>
-            
+
             <p className="mt-3 text-sm leading-relaxed text-slate-400">
               Your account role <span className="font-semibold text-slate-200">({userRoles.join(', ')})</span> does not have authorization to view this area. Please contact your system administrator.
             </p>
 
             <div className="mt-8 flex flex-col gap-3">
               <Button asChild variant="default" className="w-full">
-                <Link to="/dashboard" className="flex items-center justify-center gap-2">
+                <Link to={buildTenantPath(user?.tenantId, '/dashboard')} className="flex items-center justify-center gap-2">
                   <ArrowLeft className="h-4 w-4" /> Go to Dashboard
                 </Link>
               </Button>
-              
+
               <Button onClick={() => logout()} variant="outline" className="w-full border-red-900/30 text-red-400 hover:bg-red-950/20 hover:text-red-300">
                 <LogOut className="h-4 w-4 mr-2 inline" /> Sign Out
               </Button>

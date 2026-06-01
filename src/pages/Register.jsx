@@ -18,7 +18,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../shared/hooks/useAuth'
 import { Button } from '../shared/ui/button.jsx'
-import { createTenant, register as registerTenantAdmin } from '../shared/api/authApi.js'
+import { checkTenantSlugAvailability, createTenant, register as registerTenantAdmin } from '../shared/api/authApi.js'
+import { buildTenantPath } from '../shared/config/runtime-config.js'
 
 // Helper to decode JWT token safely
 const decodeToken = (token) => {
@@ -67,7 +68,7 @@ const slugify = (text) => {
 }
 
 export default function Register() {
-  const { register, setSession, isAuthenticated, isLoading, error, clearError } = useAuth()
+  const { register, setSession, refreshToken, isAuthenticated, isLoading, error, clearError } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const inviteToken = searchParams.get('token')
@@ -126,9 +127,9 @@ export default function Register() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard')
+      navigate(buildTenantPath(tenantId || inviterInfo?.tenantId || tenantAdminSession?.tenantId, '/dashboard'), { replace: true })
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate, inviterInfo?.tenantId, tenantAdminSession?.tenantId, tenantId])
 
   // Automatically generate and check slug when driving school name is modified
   const handleSchoolNameChange = (val) => {
@@ -151,16 +152,29 @@ export default function Register() {
       clearTimeout(slugDebounceRef.current)
     }
 
-    slugDebounceRef.current = setTimeout(() => {
-      // Reserved taken slugs simulation
-      const reservedSlugs = ['admin', 'test', 'dsms', 'google', 'facebook', 'root', 'saas', 'server']
-      const isTaken = reservedSlugs.includes(tenantId.toLowerCase())
+    const controller = new AbortController()
 
-      setIsSlugChecking(false)
-      setIsSlugAvailable(!isTaken)
-    }, 600)
+    slugDebounceRef.current = setTimeout(async () => {
+      try {
+        const result = await checkTenantSlugAvailability(tenantId)
+        if (!controller.signal.aborted) {
+          setIsSlugAvailable(Boolean(result?.available))
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setIsSlugAvailable(false)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSlugChecking(false)
+        }
+      }
+    }, 500)
 
-    return () => clearTimeout(slugDebounceRef.current)
+    return () => {
+      controller.abort()
+      clearTimeout(slugDebounceRef.current)
+    }
   }, [tenantId, isInvitedMode])
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -288,21 +302,35 @@ export default function Register() {
         setDeploymentLogs(prev => [...prev, '✓ Administration token confirmed.'])
 
         // ── Step 2: Create the tenant using the fresh accessToken ──
-        await createTenant(schoolName, identifier, tenantAdminSession.accessToken)
+        const createdTenant = await createTenant(schoolName, tenantId, identifier, tenantAdminSession.accessToken)
+
+        const linkedSession = {
+          ...tenantAdminSession,
+          tenantId: createdTenant.slug || tenantId,
+        }
+
+        setTenantAdminSession(linkedSession)
 
         setDeploymentLogs(prev => [...prev, `✓ School node "${schoolName}" activated and linked.`])
         setDeploymentLogs(prev => [...prev, 'Redirecting to control center...'])
 
-        setSession(tenantAdminSession)
+        setSession(linkedSession)
+        try {
+          await refreshToken()
+        } catch (refreshError) {
+          console.warn('Unable to refresh linked tenant session:', refreshError)
+        }
 
-        setTimeout(() => navigate('/dashboard'), 800)
+        setTimeout(() => {
+          navigate(buildTenantPath(createdTenant.slug || tenantId, '/dashboard'))
+        }, 800)
       } catch (err) {
         setValidationError(err.message || 'Deployment node configuration failed.')
         setDeploymentLogs([])
       } finally {
         setIsDeployingSchool(false)
       }
-    }, 1200)
+    }, 2000)
   }
 
   // Handle registration for invited users (Single-step flow)
@@ -331,7 +359,8 @@ export default function Register() {
         },
         inviteToken
       )
-      navigate('/dashboard')
+
+      navigate(buildTenantPath(tenantId || inviterInfo?.tenantId || tenantAdminSession?.tenantId, '/dashboard'), { replace: true })
     } catch {
       // Handled by store error state
     }
@@ -712,7 +741,12 @@ export default function Register() {
                     required
                     placeholder="zenith-academy"
                     value={tenantId}
-                    onChange={(e) => setTenantId(slugify(e.target.value))}
+                    onChange={(e) => {
+                      const nextSlug = slugify(e.target.value)
+                      setTenantId(nextSlug)
+                      setIsSlugAvailable(null)
+                      setIsSlugChecking(nextSlug.length >= 3)
+                    }}
                     className="w-full h-11 pl-4 pr-12 rounded-lg border border-slate-800 bg-slate-950/50 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-all duration-200 font-mono"
                   />
 
@@ -736,9 +770,7 @@ export default function Register() {
 
                 {/* Inline Helper Messaging */}
                 {isSlugAvailable === true && (
-                  <p className="text-[10px] text-emerald-400 leading-none">
-                    ✓ Local slug node active: zenith-academy.dsmsapp.com
-                  </p>
+                  <p className="text-[10px] text-emerald-400 leading-none">✓ Normal routing is active for this setup.</p>
                 )}
                 {isSlugAvailable === false && (
                   <p className="text-[10px] text-red-400 leading-none">
@@ -746,9 +778,7 @@ export default function Register() {
                   </p>
                 )}
                 {!tenantId && (
-                  <p className="text-[10px] text-slate-500 leading-none">
-                    Slug ID creates isolated database domains mapping to your workspace.
-                  </p>
+                  <p className="text-[10px] text-slate-500 leading-none">Slug ID is used as the school identifier for normal routing mode.</p>
                 )}
               </div>
 

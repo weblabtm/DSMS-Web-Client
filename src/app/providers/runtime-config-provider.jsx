@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { dsmsApi } from '../../shared/api/dsms-api.js'
-import { createFallbackRuntimeConfig, loadRuntimeConfig } from '../../shared/config/runtime-config.js'
+import { createFallbackRuntimeConfig, loadRuntimeConfig, setGlobalRuntimeConfig } from '../../shared/config/runtime-config.js'
 import { RuntimeConfigContext } from '../../shared/context/runtime-config-context.js'
 
 const createInitialState = () => ({
@@ -18,10 +18,14 @@ export function RuntimeConfigProvider({ children }) {
 
         try {
             const config = await loadRuntimeConfig()
+            setGlobalRuntimeConfig(config)
             setState({ config, error: null, status: 'ready' })
         } catch (error) {
+            const fallbackConfig = createFallbackRuntimeConfig()
+            setGlobalRuntimeConfig(fallbackConfig)
+
             setState({
-                config: createFallbackRuntimeConfig(),
+                config: fallbackConfig,
                 error: error instanceof Error ? error.message : String(error),
                 status: 'fallback',
             })
@@ -36,12 +40,16 @@ export function RuntimeConfigProvider({ children }) {
                 const config = await loadRuntimeConfig()
 
                 if (active) {
+                    setGlobalRuntimeConfig(config)
                     setState({ config, error: null, status: 'ready' })
                 }
             } catch (error) {
                 if (active) {
+                    const fallbackConfig = createFallbackRuntimeConfig()
+                    setGlobalRuntimeConfig(fallbackConfig)
+
                     setState({
-                        config: createFallbackRuntimeConfig(),
+                        config: fallbackConfig,
                         error: error instanceof Error ? error.message : String(error),
                         status: 'fallback',
                     })

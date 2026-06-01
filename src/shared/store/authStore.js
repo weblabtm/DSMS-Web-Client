@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import * as authApi from '../api/authApi'
+import { buildBaseHostUrl } from '../config/runtime-config'
 
 const STORAGE_KEY = 'dsms_session'
 
@@ -144,6 +145,10 @@ export const useAuthStore = create((set, get) => ({
       } catch (err) {
         console.warn('Logout endpoint call failed:', err)
       }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.location.replace(buildBaseHostUrl('/login'))
     }
   },
 }))

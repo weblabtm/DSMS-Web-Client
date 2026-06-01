@@ -14,6 +14,7 @@ This app is the browser client for the DSMS backend.
 2. Run `npm install` once.
 3. Run `npm run dev`.
 4. If the backend is on another port, set `VITE_API_PROXY_TARGET=http://localhost:3000` or the correct target before starting Vite.
+5. For local subdomain testing, open the app with `lvh.me`, for example `http://tenant1.lvh.me:5173` or `http://school-a.lvh.me:5173`.
 
 ## Backend routes used by the client
 

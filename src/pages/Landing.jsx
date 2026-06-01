@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {
     Sparkles,
     Calendar as CalendarIcon,
@@ -22,6 +22,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '../shared/ui/tabs.jsx'
 import { Slider } from '../shared/ui/slider.jsx'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../shared/ui/accordion.jsx'
 import { Carousel } from '../shared/ui/carousel.jsx'
+import { buildBaseHostUrl } from '../shared/config/runtime-config.js'
 
 import heroDashboard from '../assets/hero-dashboard.png'
 
@@ -29,7 +30,6 @@ export default function Landing() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [studentsCount, setStudentsCount] = useState([150])
     const [instructorsCount, setInstructorsCount] = useState([12])
-
     const calculatedHoursSaved = Math.round((studentsCount[0] * 0.4) + (instructorsCount[0] * 3.5))
     const calculatedMoneySaved = calculatedHoursSaved * 30
 
@@ -77,7 +77,7 @@ export default function Landing() {
 
                     {/* Desktop CTA */}
                     <div className="hidden lg:flex items-center gap-4">
-                        <a href="/login" className="text-sm font-bold text-slate-300 hover:text-white px-3.5 py-2 transition-colors">
+                        <a href={buildBaseHostUrl('/login')} className="text-sm font-bold text-slate-300 hover:text-white px-3.5 py-2 transition-colors">
                             Sign In
                         </a>
                         <a href="/dashboard">
@@ -115,7 +115,7 @@ export default function Landing() {
                         </nav>
                         <div className="h-px bg-slate-900 mb-5" />
                         <div className="flex flex-col gap-3">
-                            <a href="/login" className="text-center font-bold text-slate-300 hover:text-white py-2.5 transition-colors">
+                            <a href={buildBaseHostUrl('/login')} className="text-center font-bold text-slate-300 hover:text-white py-2.5 transition-colors">
                                 Sign In
                             </a>
                             <a href="/dashboard" className="w-full">
@@ -140,7 +140,7 @@ export default function Landing() {
 
                             <Badge variant="default" className="mb-5 flex gap-1.5 py-1 px-3 border border-indigo-500/25 bg-indigo-500/5 cursor-default text-xs">
                                 <Sparkles className="h-3 w-3 text-indigo-400 shrink-0" />
-                                <span className="text-indigo-200">v2.0: Dynamic Calendar Syncing is live!</span>
+                                <span className="text-indigo-200">Normal route client mode is active.</span>
                             </Badge>
 
                             <h1 className="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.08] mb-5 text-white">

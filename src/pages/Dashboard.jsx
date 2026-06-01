@@ -1,20 +1,23 @@
 import React, { useState } from 'react'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
-import { 
-  User, 
-  Shield, 
-  Server, 
-  MapPin, 
-  UserPlus, 
-  Copy, 
-  Check, 
-  LogOut, 
+import {
+  User,
+  Shield,
+  Server,
+  MapPin,
+  UserPlus,
+  Copy,
+  Check,
+  LogOut,
   ExternalLink,
   ChevronRight,
   Info
 } from 'lucide-react'
 import { useAuth } from '../shared/hooks/useAuth'
 import { Button } from '../shared/ui/button.jsx'
+import { buildTenantPath } from '../shared/config/runtime-config.js'
 
 const getRoleColor = (role) => {
   switch (role) {
@@ -37,8 +40,15 @@ const getRoleColor = (role) => {
 
 export default function Dashboard() {
   const { user, currentRole, getInviteableRoles, logout } = useAuth()
+  const navigate = useNavigate()
   const inviteableRoles = getInviteableRoles()
   const canInvite = inviteableRoles.length > 0
+
+  useEffect(() => {
+    if (currentRole === 'Super Admin') {
+      navigate('/super-admin/dashboard', { replace: true })
+    }
+  }, [currentRole, navigate])
 
   // State for generator
   const [targetRole, setTargetRole] = useState(inviteableRoles[0] || '')
@@ -47,14 +57,13 @@ export default function Dashboard() {
 
   const handleGenerateLink = () => {
     if (!targetRole) return
-    
+
     // In our system, the inviter's token is their current active accessToken
     const token = user?.accessToken
     if (!token) return
 
-    const baseUrl = window.location.origin
-    const inviteUrl = `${baseUrl}/register?token=${token}`
-    
+    const inviteUrl = buildTenantPath(user?.tenantId, `/register?token=${token}`)
+
     setGeneratedLink(inviteUrl)
     setCopied(false)
   }
@@ -86,9 +95,9 @@ export default function Dashboard() {
             </span>
           </Link>
 
-          <Button 
-            onClick={() => logout()} 
-            variant="outline" 
+          <Button
+            onClick={() => logout()}
+            variant="outline"
             size="sm"
             className="border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white"
           >
@@ -111,7 +120,7 @@ export default function Dashboard() {
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Col 1: Profile & Node Info */}
           <div className="lg:col-span-1 space-y-8">
             {/* Profile Info Card */}
@@ -201,7 +210,7 @@ export default function Dashboard() {
                 <div className="space-y-6">
                   {/* Selector Row */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                    
+
                     {/* Role Selection */}
                     <div className="md:col-span-2 space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -245,7 +254,7 @@ export default function Dashboard() {
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-slate-950 rounded-lg border border-slate-800 px-4 py-2.5 text-xs text-slate-300 select-all font-mono truncate">
                           {generatedLink}
@@ -257,7 +266,7 @@ export default function Dashboard() {
                         >
                           <Copy className="h-4.5 w-4.5" />
                         </button>
-                        
+
                         <a
                           href={generatedLink}
                           target="_blank"
@@ -273,7 +282,7 @@ export default function Dashboard() {
                         <UserPlus className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
                         <div>
                           <span className="font-bold text-emerald-300 block mb-0.5">Ready to Test!</span>
-                          Click the <span className="font-semibold text-white">External Link</span> icon above to open an incognito/new tab window. 
+                          Click the <span className="font-semibold text-white">External Link</span> icon above to open an incognito/new tab window.
                           The registration page will automatically capture this session's JWT credentials, welcome you, lock the tenancy context to <span className="font-semibold text-white">{user?.tenantId || 'central'}</span>, and restrict registration options to <span className="font-semibold text-white">{targetRole}</span>!
                         </div>
                       </div>
@@ -298,7 +307,7 @@ export default function Dashboard() {
               <h2 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2 font-mono">
                 <span className="h-2.5 w-2.5 rounded-full bg-indigo-500 inline-block animate-pulse" /> SIMULATION_TERMINAL_LOGS
               </h2>
-              
+
               <div className="bg-slate-950 rounded-lg p-4 font-mono text-[10px] text-slate-400 space-y-1.5 leading-normal border border-slate-900 select-none">
                 <div><span className="text-indigo-400">[info]</span> Booting auth module rehydration sequence...</div>
                 <div><span className="text-indigo-400">[info]</span> Found cached credentials. Verifying session integrity...</div>
@@ -308,7 +317,7 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          
+
         </div>
       </main>
     </div>
