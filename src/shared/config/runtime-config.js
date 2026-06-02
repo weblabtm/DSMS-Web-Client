@@ -21,8 +21,17 @@ const getGlobalRuntimeConfig = () => {
 export const getRuntimeApiBaseUrl = () => {
     const globalConfig = getGlobalRuntimeConfig()
 
-    return globalConfig?.apiBaseUrl ?? import.meta.env.VITE_API_BASE_URL ?? window.location.origin
+    // In production, we must NEVER fall back to the web app origin.
+    // If VITE_API_BASE_URL is not configured, fail fast so we don't POST to the frontend and get 405.
+    const baseUrl = globalConfig?.apiBaseUrl ?? import.meta.env.VITE_API_BASE_URL
+
+    if (!baseUrl) {
+        throw new Error('Missing API base URL. Set VITE_API_BASE_URL (e.g. https://dsms-server.vercel.app)')
+    }
+
+    return baseUrl
 }
+
 
 export const setGlobalRuntimeConfig = (config) => {
     if (typeof window === 'undefined') {
