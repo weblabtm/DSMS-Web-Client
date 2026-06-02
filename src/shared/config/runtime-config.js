@@ -63,7 +63,12 @@ export const createFallbackRuntimeConfig = () => ({
 })
 
 export async function loadRuntimeConfig() {
-    const response = await fetch(API_ENDPOINTS.runtimeConfig, {
+    // Important: do not call relative `/config` here.
+    // If `/config` is served by the web app origin, it may return a web-origin apiBaseUrl
+    // which then causes POST `/auth/login` to hit the frontend (405).
+    const baseUrl = getRuntimeApiBaseUrl()
+
+    const response = await fetch(`${baseUrl}${API_ENDPOINTS.runtimeConfig}`, {
         headers: {
             Accept: 'application/json',
         },
@@ -76,9 +81,10 @@ export async function loadRuntimeConfig() {
     const payload = await response.json()
 
     return {
-        apiBaseUrl: String(payload.apiBaseUrl ?? window.location.origin),
+        apiBaseUrl: String(payload.apiBaseUrl ?? baseUrl),
         host: String(payload.host ?? window.location.host),
         hostname: String(payload.hostname ?? window.location.hostname),
         tenantSlug: toStringOrNull(payload.tenantSlug),
     }
 }
+
