@@ -35,7 +35,8 @@ export function ProtectedRoute({ children, allowedRoles }) {
 
   // 2. Redirect to /login if unauthenticated
   if (!isAuthenticated || !user) {
-    return <BaseHostRedirect to="/login" />
+    const nextUrl = window.location.pathname + window.location.search
+    return <BaseHostRedirect to={`/login?next=${encodeURIComponent(nextUrl)}`} />
   }
 
   // 3. Role verification (if roles are restricted)

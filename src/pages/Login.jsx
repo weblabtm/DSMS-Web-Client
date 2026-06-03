@@ -15,6 +15,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
 
   const resolvePostLoginTarget = (session) => {
+    const searchParams = new URLSearchParams(window.location.search)
+    const nextUrl = searchParams.get('next')
+
+    if (nextUrl && nextUrl.startsWith('/') && !nextUrl.startsWith('//')) {
+      return nextUrl
+    }
+
     if (currentRole === 'Super Admin') {
       return '/super-admin/dashboard'
     }
