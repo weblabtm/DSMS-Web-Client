@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Menu, X, ArrowRight } from 'lucide-react'
 import { Button } from '../shared/ui/button.jsx'
 import { buildBaseHostUrl } from '../shared/config/runtime-config.js'
 
 export default function Navbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const navigate = useNavigate()
     const location = useLocation()
 
     const handleNavClick = (e, targetId) => {
