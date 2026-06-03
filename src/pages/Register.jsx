@@ -20,6 +20,7 @@ import { useAuth } from '../shared/hooks/useAuth'
 import { Button } from '../shared/ui/button.jsx'
 import { checkTenantSlugAvailability, createTenant, register as registerTenantAdmin } from '../shared/api/authApi.js'
 import { buildTenantPath } from '../shared/config/runtime-config.js'
+import Navbar from '../widgets/Navbar.jsx'
 
 // Helper to decode JWT token safely
 const decodeToken = (token) => {
@@ -371,13 +372,15 @@ export default function Register() {
   // ─────────────────────────────────────────────────────────────────────────────
   if (isInvitedMode) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-slate-950 text-slate-100 overflow-hidden px-4 py-12">
+      <div className="relative flex min-h-screen flex-col bg-slate-950 text-slate-100 overflow-hidden">
+        <Navbar />
         <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-[450px] h-[450px] bg-indigo-600/10 rounded-full blur-[130px]" />
           <div className="absolute bottom-1/4 right-1/4 w-[450px] h-[450px] bg-blue-600/5 rounded-full blur-[130px]" />
         </div>
 
-        <div className="w-full max-w-lg">
+        <div className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="w-full max-w-lg z-10">
           <div className="mb-6 text-center">
             <Link to="/" className="inline-flex items-center gap-2.5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-extrabold text-lg shadow-lg shadow-indigo-500/25">D</div>
@@ -547,6 +550,7 @@ export default function Register() {
           </div>
         </div>
       </div>
+    </div>
     )
   }
 
@@ -554,14 +558,16 @@ export default function Register() {
   // RENDER: Multi-Step Public Wizard Flow
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-slate-950 text-slate-100 overflow-hidden px-4 py-12">
+    <div className="relative flex min-h-screen flex-col bg-slate-950 text-slate-100 overflow-hidden">
+      <Navbar />
       {/* ── Ambient glow blobs ── */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-[450px] h-[450px] bg-indigo-600/10 rounded-full blur-[130px]" />
         <div className="absolute bottom-1/4 right-1/4 w-[450px] h-[450px] bg-blue-600/5 rounded-full blur-[130px]" />
       </div>
 
-      <div className="w-full max-w-lg">
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-lg z-10">
         {/* Logo */}
         <div className="mb-6 text-center">
           <Link to="/" className="inline-flex items-center gap-2.5">
@@ -905,6 +911,7 @@ export default function Register() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* ═══════════════════════════════════════════════
           EMAIL VERIFICATION MODAL OVERLAY (GLASSMORPHIC)
