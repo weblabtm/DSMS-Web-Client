@@ -1,122 +1,108 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
+import { useAuthStore } from './shared/store/authStore'
+
+// Pages
+import Landing from './pages/Landing.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import TenantDashboard from './pages/dashboard/TenantDashboard.jsx'
+import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard.jsx'
+
+// UI Guards
+import ProtectedRoute from './shared/ui/ProtectedRoute.jsx'
+
+function TenantDashboardEntry() {
+  const currentUser = useAuthStore((state) => state.user)
+  const currentRole = useAuthStore((state) => state.user?.roles?.[0] ?? null)
+  const { tenantSlug } = useParams()
+
+  const currentTenantSlug = currentUser?.tenantId?.trim()
+  const routeTenantSlug = tenantSlug?.trim() || null
+
+  if (!routeTenantSlug && currentRole === 'Super Admin') {
+    return <Navigate to="/super-admin/dashboard" replace />
+  }
+
+  if (routeTenantSlug && currentRole !== 'Super Admin' && currentTenantSlug && routeTenantSlug !== currentTenantSlug) {
+    return <Navigate to={`/${currentTenantSlug}/dashboard`} replace />
+  }
+
+  if (currentTenantSlug && !routeTenantSlug) {
+    return <Navigate to={`/${currentTenantSlug}/dashboard`} replace />
+  }
+
+  return <TenantDashboard />
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  const initStore = useAuthStore((state) => state.initStore)
+  const isInitialized = useAuthStore((state) => state.isInitialized)
+
+  // Trigger boot rehydration
+  useEffect(() => {
+    initStore()
+  }, [initStore])
+
+  // Full screen rehydration loader
+  if (!isInitialized) {
+    return (
+      <div className="relative flex min-h-screen items-center justify-center bg-slate-950 text-slate-100 overflow-hidden">
+        {/* Ambient glow blobs */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 w-[350px] h-[350px] -translate-x-1/2 -translate-y-1/2 bg-indigo-600/10 rounded-full blur-[100px]" />
+        </div>
+
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent shadow-lg shadow-indigo-500/20" />
+          <p className="text-sm font-semibold tracking-wide text-slate-400">Deploying control nodes...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-      <div className="ticks"></div>
+        {/* Tenant Dashboard Route */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <TenantDashboardEntry />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/:tenantSlug/dashboard"
+          element={
+            <ProtectedRoute>
+              <TenantDashboardEntry />
+            </ProtectedRoute>
+          }
+        />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {/* Super Admin Dashboard Route */}
+        <Route
+          path="/super-admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['Super Admin']}>
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        {/* Catch-all Redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
 export default App
+
