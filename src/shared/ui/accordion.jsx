@@ -4,7 +4,7 @@ import { cn } from '../lib/utils'
 const AccordionContext = React.createContext(null)
 const AccordionItemContext = React.createContext(null)
 
-export const Accordion = React.forwardRef(({ type = 'single', value, defaultValue, onValueChange, className, children, ...props }, ref) => {
+export const Accordion = React.forwardRef(({ type = 'single', defaultValue, onValueChange, className, children, ...props }, ref) => {
   const [activeItems, setActiveItems] = React.useState(() => {
     if (defaultValue) return Array.isArray(defaultValue) ? defaultValue : [defaultValue]
     return []

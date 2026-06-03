@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Shield, Database, Layers3, Building2, Users, BarChart3, ArrowRight, LogOut } from 'lucide-react'
+import { Shield, Database, Layers3, Building2, Users, ArrowRight, LogOut } from 'lucide-react'
 import { useEffect } from 'react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { Button } from '../../shared/ui/button.jsx'

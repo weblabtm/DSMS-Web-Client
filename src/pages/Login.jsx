@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, Eye, EyeOff, Lock, User, AlertCircle } from 'lucide-react'
 import { useAuth } from '../shared/hooks/useAuth'
@@ -15,7 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  const resolvePostLoginTarget = (session) => {
+  const resolvePostLoginTarget = useCallback((session) => {
     const searchParams = new URLSearchParams(window.location.search)
     const nextUrl = searchParams.get('next')
 
@@ -28,13 +28,13 @@ export default function Login() {
     }
 
     return session?.tenantId ? buildTenantPath(session.tenantId, '/dashboard') : '/dashboard'
-  }
+  }, [currentRole])
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate(resolvePostLoginTarget(user), { replace: true })
     }
-  }, [currentRole, isAuthenticated, navigate, user])
+  }, [isAuthenticated, navigate, user, resolvePostLoginTarget])
 
   const loginHint = 'Use your account credentials to sign in.'
 
