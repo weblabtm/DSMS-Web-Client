@@ -1,3 +1,8 @@
+import { useAuthStore } from '../store/authStore.js'
+import { refreshSession } from './authApi.js'
+
+let refreshPromise = null
+
 const toJsonBody = async (response) => {
     const text = await response.text()
 
@@ -30,16 +35,75 @@ export class HttpError extends Error {
 }
 
 export async function requestJson(path, options = {}) {
-    const response = await fetch(resolveRequestPath(path), {
+    const savedSession = localStorage.getItem('dsms_session')
+    let accessToken = null
+    let refreshToken = null
+
+    if (savedSession) {
+        try {
+            const parsed = JSON.parse(savedSession)
+            accessToken = parsed?.accessToken
+            refreshToken = parsed?.refreshToken
+        } catch {
+            // ignore
+        }
+    }
+
+    const headers = {
+        Accept: 'application/json',
+        ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers ?? {}),
+    }
+
+    if (accessToken && !headers['Authorization'] && !headers['authorization']) {
+        headers['Authorization'] = `Bearer ${accessToken}`
+    }
+
+    const requestOptions = {
         method: options.method ?? 'GET',
-        headers: {
-            Accept: 'application/json',
-            ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-            ...(options.headers ?? {}),
-        },
+        headers,
         body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
         credentials: 'same-origin',
-    })
+    }
+
+    const requestPath = resolveRequestPath(path)
+    let response = await fetch(requestPath, requestOptions)
+
+    if (response.status === 401 && refreshToken) {
+        try {
+            if (!refreshPromise) {
+                refreshPromise = refreshSession(refreshToken)
+                    .then((newSession) => {
+                        useAuthStore.getState().setSession(newSession)
+                        refreshPromise = null
+                        return newSession
+                    })
+                    .catch((err) => {
+                        refreshPromise = null
+                        useAuthStore.getState().logout()
+                        throw err
+                    })
+            }
+
+            const newSession = await refreshPromise
+
+            const retryHeaders = {
+                ...headers,
+                'Authorization': `Bearer ${newSession.accessToken}`,
+            }
+
+            response = await fetch(requestPath, {
+                ...requestOptions,
+                headers: retryHeaders,
+            })
+        } catch (refreshErr) {
+            throw new HttpError(
+                `Request to ${path} failed and token refresh also failed`,
+                401,
+                refreshErr.payload ?? null
+            )
+        }
+    }
 
     const payload = await toJsonBody(response)
 
