@@ -43,6 +43,7 @@ async function request(path, { method = 'POST', body, token } = {}) {
   const response = await fetch(`${getRuntimeApiBaseUrl()}${path}`, {
     method,
     headers,
+    credentials: 'include',
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
@@ -115,22 +116,22 @@ export async function register(
 /**
  * Obtain a new access token using a refresh token.
  *
- * @param {string} refreshToken
+ * @param {string} [refreshToken]
  * @returns {Promise<import('./authTypes').AuthSessionResponse>}
  */
 export async function refreshSession(refreshToken) {
-  return request('/auth/refresh', { body: { refreshToken } })
+  return request('/auth/refresh', { body: refreshToken ? { refreshToken } : undefined })
 }
 
 /**
  * Invalidate the current session on the server.
  * Fire-and-forget from the server's perspective; we always treat it as success.
  *
- * @param {string} refreshToken
+ * @param {string} [refreshToken]
  * @returns {Promise<void>}
  */
 export async function logout(refreshToken) {
-  await request('/auth/logout', { body: { refreshToken } }).catch(() => {
+  await request('/auth/logout', { body: refreshToken ? { refreshToken } : undefined }).catch(() => {
     // Ignore network / server errors during logout — local state is cleared anyway.
   })
 }

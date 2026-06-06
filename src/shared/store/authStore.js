@@ -21,7 +21,8 @@ export const useAuthStore = create((set, get) => ({
    * Persist a session returned from auth APIs.
    */
   setSession: (session) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+    const { refreshToken, ...safeSession } = session || {}
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeSession))
     set({
       user: session,
       isAuthenticated: true,
@@ -38,7 +39,7 @@ export const useAuthStore = create((set, get) => ({
       const savedSession = localStorage.getItem(STORAGE_KEY)
       if (savedSession) {
         const parsed = JSON.parse(savedSession)
-        if (parsed && parsed.refreshToken) {
+        if (parsed && parsed.userId) {
           // Temporarily set the session from localStorage to get started
           set({
             user: parsed,
@@ -105,10 +106,11 @@ export const useAuthStore = create((set, get) => ({
    */
   refreshToken: async () => {
     const { user } = get()
-    if (!user || !user.refreshToken) return
+    const savedSession = localStorage.getItem(STORAGE_KEY)
+    if (!savedSession) return
 
     try {
-      const newSession = await authApi.refreshSession(user.refreshToken)
+      const newSession = await authApi.refreshSession(user?.refreshToken)
 
       get().setSession(newSession)
       return newSession
