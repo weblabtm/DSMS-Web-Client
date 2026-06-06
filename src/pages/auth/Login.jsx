@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Lock, Mail, AlertCircle, ChevronDown, Check } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { Button } from '../../shared/ui/button.jsx'
 import { buildBaseHostUrl, buildTenantPath } from '../../shared/config/runtime-config.js'
@@ -14,17 +14,7 @@ export default function Login() {
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [selectedRole, setSelectedRole] = useState('')
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
-
-  const roles = [
-    { value: 'super_admin', label: 'Super Admin' },
-    { value: 'tenant_admin', label: 'Tenant Admin' },
-    { value: 'learner_driver', label: 'Learner Driver' },
-    { value: 'instructor', label: 'Instructor' },
-    { value: 'student', label: 'Student' }
-  ]
 
   const resolvePostLoginTarget = useCallback((session) => {
     const searchParams = new URLSearchParams(window.location.search)
@@ -54,13 +44,12 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!identifier || !password || !selectedRole) return
+    if (!identifier || !password) return
 
     try {
       const session = await login({
         identifier,
         password,
-        role: selectedRole,
       })
 
       navigate(resolvePostLoginTarget(session), { replace: true })
@@ -191,50 +180,6 @@ export default function Login() {
                 </div>
               </motion.div>
 
-              {/* Role Selection */}
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.45 }}
-                className="space-y-2"
-              >
-                <label className="text-sm font-semibold text-slate-700 block">
-                  Select Role
-                </label>
-                <div className="relative group">
-                  <button
-                    type="button"
-                    onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-                    className="w-full h-12 px-4 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all duration-300 flex items-center justify-between shadow-sm hover:shadow-md hover:border-slate-300"
-                  >
-                    {selectedRole ? roles.find(r => r.value === selectedRole)?.label : 'Select your role'}
-                    <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {isRoleDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="absolute z-10 w-full mt-2 rounded-2xl border-2 border-slate-200 bg-white shadow-xl overflow-hidden"
-                    >
-                      {roles.map((role) => (
-                        <button
-                          key={role.value}
-                          type="button"
-                          onClick={() => {
-                            setSelectedRole(role.value)
-                            setIsRoleDropdownOpen(false)
-                          }}
-                          className="w-full px-4 py-3 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-between border-b border-slate-100 last:border-b-0"
-                        >
-                          {role.label}
-                          {selectedRole === role.value && <Check className="h-5 w-5 text-slate-900" />}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </div>
-              </motion.div>
 
               {/* Remember Me */}
               <motion.div
@@ -263,7 +208,7 @@ export default function Login() {
               >
                 <Button
                   type="submit"
-                  disabled={isLoading || !identifier || !password || !selectedRole}
+                  disabled={isLoading || !identifier || !password}
                   className="w-full flex items-center justify-center gap-2 h-12 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   {isLoading ? (
