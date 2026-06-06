@@ -4,7 +4,7 @@ import { useAuthStore } from './shared/store/authStore'
 
 // Pages
 import Landing from './pages/Landing.jsx'
-import Login from './pages/Login.jsx'
+import Login from './pages/auth/Login.jsx'
 import Register from './pages/Register.jsx'
 import TenantDashboard from './pages/dashboard/TenantDashboard.jsx'
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard.jsx'
