@@ -50,6 +50,7 @@ export default function Login() {
       const session = await login({
         identifier,
         password,
+        rememberMe,
       })
 
       navigate(resolvePostLoginTarget(session), { replace: true })

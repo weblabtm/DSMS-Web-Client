@@ -74,13 +74,14 @@ async function request(path, { method = 'POST', body, token } = {}) {
  * @param {{ identifier: string; password: string; tenantId?: string; branchId?: string }} credentials
  * @returns {Promise<import('./authTypes').AuthSessionResponse>}
  */
-export async function login({ identifier, password, tenantId, branchId }) {
+export async function login({ identifier, password, tenantId, branchId, rememberMe }) {
   return request('/auth/login', {
     body: {
       identifier,
       password,
       ...(tenantId ? { tenantId } : {}),
       ...(branchId ? { branchId } : {}),
+      ...(rememberMe !== undefined ? { rememberMe } : {}),
     },
   })
 }
