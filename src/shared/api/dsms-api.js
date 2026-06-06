@@ -8,9 +8,9 @@ export const dsmsApi = {
     register: (payload) => requestJson(API_ENDPOINTS.authRegister, { method: 'POST', body: payload }),
     refresh: (payload) => requestJson(API_ENDPOINTS.authRefresh, { method: 'POST', body: payload }),
     logout: (payload) => requestJson(API_ENDPOINTS.authLogout, { method: 'POST', body: payload }),
-    listTenants: (accessToken) => requestJson(API_ENDPOINTS.tenants, accessToken ? {
+    listTenants: (accessToken) => requestJson(API_ENDPOINTS.tenants, {
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },
-    } : {}),
+    }),
 }
