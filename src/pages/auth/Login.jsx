@@ -5,10 +5,13 @@ import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { Button } from '../../shared/ui/button.jsx'
 import { buildBaseHostUrl, buildTenantPath } from '../../shared/config/runtime-config.js'
+import { useUiStore } from '../../shared/store/uiStore'
 
 export default function Login() {
   const { login, isAuthenticated, isLoading, error, clearError, currentRole, user } = useAuth()
   const navigate = useNavigate()
+  const showLoader = useUiStore((state) => state.showLoader)
+  const hideLoader = useUiStore((state) => state.hideLoader)
 
   // Form states
   const [identifier, setIdentifier] = useState('')
@@ -31,21 +34,83 @@ export default function Login() {
     return session?.tenantId ? buildTenantPath(session.tenantId, '/dashboard') : '/dashboard'
   }, [currentRole])
 
+  const getOtpRedirectUrl = useCallback((phone, email, mfaToken) => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const nextVal = searchParams.get('next');
+    let callback = '/login?success=true';
+    if (nextVal) {
+      callback += `&next=${encodeURIComponent(nextVal)}`;
+    }
+    return `/otp?phone=${encodeURIComponent(phone)}&callbackUrl=${encodeURIComponent(callback)}&email=${encodeURIComponent(email)}&mfaToken=${encodeURIComponent(mfaToken)}`;
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate(resolvePostLoginTarget(user), { replace: true })
     }
   }, [isAuthenticated, navigate, user, resolvePostLoginTarget])
 
+  // Check for successful OTP verification callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    if (success === 'true') {
+      const stored = sessionStorage.getItem('dsms_temp_login');
+      if (stored) {
+        try {
+          const { identifier: savedId, password: savedPassword, rememberMe: savedRemember, mfaToken: savedMfaToken } = JSON.parse(stored);
+          sessionStorage.removeItem('dsms_temp_login');
+          
+          // Clear query params to prevent endless loop on error
+          window.history.replaceState({}, document.title, window.location.pathname);
+
+          // Perform auto-login
+          showLoader('Completing MFA authentication...')
+          login({
+            identifier: savedId,
+            password: savedPassword,
+            rememberMe: savedRemember,
+            mfaToken: savedMfaToken,
+          }).then((session) => {
+            hideLoader()
+            if (session && session.message === 'OTP required') {
+              const phone = session.phoneNumber || '';
+              const mfaToken = session.mfaToken || '';
+              navigate(getOtpRedirectUrl(phone, savedId, mfaToken), { replace: true });
+            } else {
+              navigate(resolvePostLoginTarget(session), { replace: true });
+            }
+          }).catch((err) => {
+            hideLoader()
+            const data = err.data || {};
+            if (err.message === 'OTP required' || data.message === 'OTP required') {
+              const phone = data.phoneNumber || '';
+              const mfaToken = data.mfaToken || '';
+              navigate(getOtpRedirectUrl(phone, savedId, mfaToken), { replace: true });
+            }
+          });
+        } catch (err) {
+          hideLoader()
+          console.error('Failed to parse temporary login credentials:', err);
+        }
+      }
+    }
+  }, [login, navigate, resolvePostLoginTarget, getOtpRedirectUrl, showLoader, hideLoader]);
+
   // Clear previous errors when entering the page
   useEffect(() => {
     clearError()
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') !== 'true') {
+      sessionStorage.removeItem('dsms_temp_login');
+    }
   }, [clearError])
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     if (!identifier || !password) return
 
+    showLoader('Authenticating credentials...')
     try {
       const session = await login({
         identifier,
@@ -53,9 +118,27 @@ export default function Login() {
         rememberMe,
       })
 
+      hideLoader()
+      if (session && session.message === 'OTP required') {
+        const phone = session.phoneNumber || '';
+        const mfaToken = session.mfaToken || '';
+        sessionStorage.setItem('dsms_temp_login', JSON.stringify({ identifier, password, rememberMe, mfaToken }));
+        navigate(getOtpRedirectUrl(phone, identifier, mfaToken), { replace: true });
+        return;
+      }
+
       navigate(resolvePostLoginTarget(session), { replace: true })
-    } catch {
-      // Caught and set in Zustand error state
+    } catch (err) {
+      hideLoader()
+      // Check if OTP is required
+      const data = err.data || {};
+      if (err.message === 'OTP required' || data.message === 'OTP required') {
+        const phone = data.phoneNumber || '';
+        const mfaToken = data.mfaToken || '';
+        sessionStorage.setItem('dsms_temp_login', JSON.stringify({ identifier, password, rememberMe, mfaToken }));
+        navigate(getOtpRedirectUrl(phone, identifier, mfaToken), { replace: true });
+        return;
+      }
     }
   }
 

@@ -16,12 +16,16 @@ This app is the browser client for the DSMS backend.
 4. If the backend is on another port, set `VITE_API_PROXY_TARGET=http://localhost:3000` or the correct target before starting Vite.
 5. For local subdomain testing, open the app with `lvh.me`, for example `http://tenant1.lvh.me:5173` or `http://school-a.lvh.me:5173`.
 
-## Backend routes used by the client
-
 - `GET /config`
 - `GET /health`
 - `POST /auth/login`
 - `POST /auth/register`
 - `POST /auth/refresh`
 - `POST /auth/logout`
+- `POST /auth/otp/generate`
+- `POST /auth/otp/validate`
 - `GET /tenant`
+
+## Developer Guides
+
+- **OTP / Multi-Factor Authentication**: For details on the short-lived transaction token authentication flow, security considerations, and component logic, see the [Frontend OTP & MFA Guide](src/pages/auth/README.md).

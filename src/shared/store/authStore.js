@@ -67,10 +67,10 @@ export const useAuthStore = create((set, get) => ({
   /**
    * Log in with identifier and password
    */
-  login: async ({ identifier, password, tenantId, branchId, rememberMe }) => {
+  login: async ({ identifier, password, tenantId, branchId, rememberMe, mfaToken }) => {
     set({ isLoading: true, error: null })
     try {
-      const session = await authApi.login({ identifier, password, tenantId, branchId, rememberMe })
+      const session = await authApi.login({ identifier, password, tenantId, branchId, rememberMe, mfaToken })
 
       get().setSession(session)
       return session

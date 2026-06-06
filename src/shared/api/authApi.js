@@ -19,11 +19,12 @@ import { getRuntimeApiBaseUrl } from '../config/runtime-config.js'
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class AuthApiError extends Error {
-  /** @param {string} message @param {number} status */
-  constructor(message, status) {
+  /** @param {string} message @param {number} status @param {any} [data] */
+  constructor(message, status, data = null) {
     super(message)
     this.name = 'AuthApiError'
     this.status = status
+    this.data = data
   }
 }
 
@@ -59,7 +60,7 @@ async function request(path, { method = 'POST', body, token } = {}) {
 
   if (!response.ok) {
     const message = data?.message ?? data?.error ?? `Request failed (${response.status})`
-    throw new AuthApiError(message, response.status)
+    throw new AuthApiError(message, response.status, data)
   }
 
   return data
@@ -75,7 +76,7 @@ async function request(path, { method = 'POST', body, token } = {}) {
  * @param {{ identifier: string; password: string; tenantId?: string; branchId?: string }} credentials
  * @returns {Promise<import('./authTypes').AuthSessionResponse>}
  */
-export async function login({ identifier, password, tenantId, branchId, rememberMe }) {
+export async function login({ identifier, password, tenantId, branchId, rememberMe, mfaToken }) {
   return request('/auth/login', {
     body: {
       identifier,
@@ -83,6 +84,7 @@ export async function login({ identifier, password, tenantId, branchId, remember
       ...(tenantId ? { tenantId } : {}),
       ...(branchId ? { branchId } : {}),
       ...(rememberMe !== undefined ? { rememberMe } : {}),
+      ...(mfaToken ? { mfaToken } : {}),
     },
   })
 }
@@ -164,5 +166,37 @@ export async function createTenant(name, slug, tenantAdminIdentifier, accessToke
 export async function checkTenantSlugAvailability(slug) {
   return request(`/tenant/slug/${encodeURIComponent(slug)}/availability`, {
     method: 'GET',
+  })
+}
+
+/**
+ * Generate a new OTP code.
+ *
+ * @param {{ email?: string; phoneNumber?: string; captchaToken?: string }} payload
+ * @returns {Promise<{ message: string; token: string }>}
+ */
+export async function generateOtp({ email, phoneNumber, captchaToken }) {
+  return request('/auth/otp/generate', {
+    body: {
+      ...(email ? { email } : {}),
+      ...(phoneNumber ? { phoneNumber } : {}),
+      ...(captchaToken ? { captchaToken } : {}),
+    },
+  })
+}
+
+/**
+ * Validate an OTP code.
+ *
+ * @param {{ otp: string; token?: string }} payload
+ * @returns {Promise<{ message: string }>}
+ */
+export async function validateOtp({ otp, token, mfaToken }) {
+  return request('/auth/otp/validate', {
+    body: {
+      otp,
+      ...(token ? { token } : {}),
+      ...(mfaToken ? { mfaToken } : {}),
+    },
   })
 }
