@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Shield, Smartphone, Key, AlertCircle, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react'
+import { Shield, Key, AlertCircle, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react'
 import { Button } from '../../shared/ui/button.jsx'
 import { generateOtp, validateOtp, getUnlockDetails } from '../../shared/api/authApi.js'
 import { getDeviceInfo } from '../../shared/utils/deviceInfo.js'
@@ -77,14 +77,6 @@ export default function Otp() {
     }
   }, [actionParam, tokenParam, showLoader, hideLoader])
 
-  // Auto-submit on mount/update when captchaToken is present (ensuring deviceInfo is loaded first to prevent fingerprint mismatch)
-  useEffect(() => {
-    const token = searchParams.get('captchaToken')
-    if (token && phase === 'request' && !isLoading && !otpToken && deviceInfo.deviceFingerprint) {
-      handleRequestOtp(token)
-    }
-  }, [searchParams, phase, isLoading, otpToken, deviceInfo])
-  
   // OTP Verification Code (6 digits)
   const [code, setCode] = useState(['', '', '', '', '', ''])
   const inputRefs = [
@@ -100,8 +92,30 @@ export default function Otp() {
   const [timeLeft, setTimeLeft] = useState(300)
   const timerRef = useRef(null)
 
+  // Format seconds to MM:SS
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  // Redirect back to callbackUrl with otpDone param.
+  // Use React Router navigate for relative URLs to preserve SPA navigation.
+  const handleRedirect = useCallback((success) => {
+    if (timerRef.current) clearInterval(timerRef.current)
+
+    if (callbackUrl.startsWith('http://') || callbackUrl.startsWith('https://')) {
+      const url = new URL(callbackUrl)
+      url.searchParams.set('otpDone', String(success))
+      window.location.replace(url.toString())
+    } else {
+      const separator = callbackUrl.includes('?') ? '&' : '?'
+      navigate(`${callbackUrl}${separator}otpDone=${success}`, { replace: true })
+    }
+  }, [callbackUrl, navigate])
+
   // Start Timer Logic
-  const startTimer = () => {
+  const startTimer = useCallback(() => {
     setTimeLeft(300)
     if (timerRef.current) clearInterval(timerRef.current)
     
@@ -118,7 +132,7 @@ export default function Otp() {
         return prev - 1
       })
     }, 1000)
-  }
+  }, [handleRedirect])
 
   // Clear timer on unmount
   useEffect(() => {
@@ -127,29 +141,7 @@ export default function Otp() {
     }
   }, [])
 
-  // Format seconds to MM:SS
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
-
-  // Redirect back to callbackUrl with otpDone param.
-  // Use React Router navigate for relative URLs to preserve SPA navigation.
-  const handleRedirect = (success) => {
-    if (timerRef.current) clearInterval(timerRef.current)
-
-    if (callbackUrl.startsWith('http://') || callbackUrl.startsWith('https://')) {
-      const url = new URL(callbackUrl)
-      url.searchParams.set('otpDone', String(success))
-      window.location.replace(url.toString())
-    } else {
-      const separator = callbackUrl.includes('?') ? '&' : '?'
-      navigate(`${callbackUrl}${separator}otpDone=${success}`, { replace: true })
-    }
-  }
-
-  const handleRequestOtp = async (tokenOverride) => {
+  const handleRequestOtp = useCallback(async (tokenOverride) => {
     const activeCaptchaToken = (typeof tokenOverride === 'string' ? tokenOverride : '') || searchParams.get('captchaToken') || ''
     setIsLoading(true)
     setError(null)
@@ -179,7 +171,17 @@ export default function Otp() {
       setIsLoading(false)
       hideLoader()
     }
-  }
+  }, [displayPhone, displayEmail, mfaTokenParam, actionParam, tokenParam, deviceInfo, searchParams, navigate, showLoader, hideLoader, startTimer])
+
+  // Auto-submit on mount/update when captchaToken is present (ensuring deviceInfo is loaded first to prevent fingerprint mismatch)
+  useEffect(() => {
+    const token = searchParams.get('captchaToken')
+    if (token && phase === 'request' && !isLoading && !otpToken && deviceInfo.deviceFingerprint) {
+      Promise.resolve().then(() => {
+        handleRequestOtp(token)
+      })
+    }
+  }, [searchParams, phase, isLoading, otpToken, deviceInfo, handleRequestOtp])
 
   // Step 2: Validate OTP
   const handleVerifyOtp = async (e) => {

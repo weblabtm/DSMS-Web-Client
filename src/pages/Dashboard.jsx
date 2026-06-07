@@ -52,11 +52,13 @@ export default function Dashboard() {
 
   // ── Active Sessions state ──
   const [sessions, setSessions] = useState([])
-  const [sessionsLoading, setSessionsLoading] = useState(false)
+  const [sessionsLoading, setSessionsLoading] = useState(true)
   const [revokingId, setRevokingId] = useState(null)
 
-  const fetchSessions = async () => {
-    setSessionsLoading(true)
+  const fetchSessions = async (showLoading = true) => {
+    if (showLoading) {
+      setSessionsLoading(true)
+    }
     try {
       const list = await getActiveSessions()
       setSessions(list)
@@ -86,7 +88,9 @@ export default function Dashboard() {
   }, [currentRole, navigate])
 
   useEffect(() => {
-    fetchSessions()
+    Promise.resolve().then(() => {
+      fetchSessions(false)
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

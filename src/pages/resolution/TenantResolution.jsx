@@ -33,7 +33,7 @@ export default function TenantResolution() {
           hideLoader()
           navigate(`/tenant-error?type=suspended&slug=${encodeURIComponent(tenantSlug)}`, { replace: true })
         }
-      } catch (err) {
+      } catch {
         if (!active) return
         hideLoader()
         navigate(`/tenant-error?type=not-found&slug=${encodeURIComponent(tenantSlug || '')}`, { replace: true })

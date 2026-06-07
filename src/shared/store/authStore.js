@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import * as authApi from '../api/authApi'
-import { buildBaseHostUrl } from '../config/runtime-config'
 import { getDeviceInfo } from '../utils/deviceInfo'
 
 const STORAGE_KEY = 'dsms_session'
@@ -22,7 +21,8 @@ export const useAuthStore = create((set, get) => ({
    * Persist a session returned from auth APIs.
    */
   setSession: (session) => {
-    const { refreshToken, ...safeSession } = session || {}
+    const safeSession = session ? { ...session } : {}
+    delete safeSession.refreshToken
     localStorage.setItem(STORAGE_KEY, JSON.stringify(safeSession))
     set({
       user: session,

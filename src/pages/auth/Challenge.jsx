@@ -36,6 +36,7 @@ export default function Challenge() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    const currentContainer = containerRef.current
     const loadScript = () => {
       if (window.turnstile) {
         renderTurnstile()
@@ -63,11 +64,11 @@ export default function Challenge() {
       const siteKey = config?.captchaSiteKey || config?.recaptchaSiteKey || '0x4AAAAAADgL0IjHaom1GpZW'
 
       try {
-        if (window.turnstile && containerRef.current) {
-          containerRef.current.innerHTML = ''
+        if (window.turnstile && currentContainer) {
+          currentContainer.innerHTML = ''
 
           const captchaDiv = document.createElement('div')
-          containerRef.current.appendChild(captchaDiv)
+          currentContainer.appendChild(captchaDiv)
 
           isRendered.current = true
           window.turnstile.render(captchaDiv, {
@@ -106,8 +107,8 @@ export default function Challenge() {
 
     return () => {
       delete window.onTurnstileLoad
-      if (containerRef.current) {
-        containerRef.current.innerHTML = ''
+      if (currentContainer) {
+        currentContainer.innerHTML = ''
       }
       isRendered.current = false
     }

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { Button } from '../../shared/ui/button.jsx'
-import { buildBaseHostUrl, buildTenantPath } from '../../shared/config/runtime-config.js'
+import { buildBaseHostUrl } from '../../shared/config/runtime-config.js'
 import { useUiStore } from '../../shared/store/uiStore'
 
 /** sessionStorage key for credentials staged during CAPTCHA redirect */
@@ -35,10 +35,14 @@ export default function Login() {
       if (match) {
         const mins = parseInt(match[1], 10)
         const secs = parseInt(match[2], 10)
-        setLockoutTimeLeft(mins * 60 + secs)
+        Promise.resolve().then(() => {
+          setLockoutTimeLeft(mins * 60 + secs)
+        })
       }
     } else {
-      setLockoutTimeLeft(0)
+      Promise.resolve().then(() => {
+        setLockoutTimeLeft(0)
+      })
     }
   }, [error])
 

@@ -1,9 +1,8 @@
-import React from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { ShieldAlert, ArrowLeft, LogOut } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { Button } from './button'
-import { buildBaseHostUrl, buildTenantPath } from '../config/runtime-config'
+import { buildTenantPath } from '../config/runtime-config'
 import { useTenantStore } from '../store/tenantStore'
 
 export function ProtectedRoute({ children, allowedRoles, bypassResolutionCheck = false }) {

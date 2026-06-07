@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from './shared/store/authStore'
 
-import { buildBaseHostUrl, buildTenantPath } from './shared/config/runtime-config.js'
+import { buildTenantPath } from './shared/config/runtime-config.js'
 
 // Pages
 import Landing from './pages/Landing.jsx'
