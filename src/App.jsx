@@ -23,7 +23,12 @@ function PublicRoute({ children }) {
   const currentUser = useAuthStore((state) => state.user)
   const currentRole = currentUser?.roles?.[0] ?? null
 
-  if (isAuthenticated && currentUser) {
+  // If Login is handling an MFA callback it must run completeLogin() first —
+  // don't let a stale session redirect us away before the new session is issued.
+  const params = new URLSearchParams(window.location.search)
+  const hasMfaCallback = params.has('otpDone') || params.has('captchaDone')
+
+  if (!hasMfaCallback && isAuthenticated && currentUser) {
     if (currentRole === 'Super Admin') {
       return <Navigate to="/super-admin/dashboard" replace />
     }

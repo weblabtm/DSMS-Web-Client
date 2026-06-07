@@ -1,68 +1,107 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { Shield, AlertCircle, RefreshCw } from 'lucide-react'
-import { Button } from '../../shared/ui/button.jsx'
 import { getGlobalRuntimeConfig } from '../../shared/config/runtime-config.js'
+import { validateCaptcha } from '../../shared/api/authApi.js'
 
 export default function Challenge() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || '/'
-  
-  const recaptchaRef = useRef(null)
+  const callbackUrl = searchParams.get('callbackUrl') || '/login'
+
+  // Redirect back to callbackUrl with captchaDone param.
+  // Use React Router navigate for relative URLs to preserve SPA navigation.
+  const handleRedirect = useCallback((success) => {
+    if (callbackUrl.startsWith('http://') || callbackUrl.startsWith('https://')) {
+      const url = new URL(callbackUrl)
+      url.searchParams.set('captchaDone', String(success))
+      window.location.replace(url.toString())
+    } else {
+      const separator = callbackUrl.includes('?') ? '&' : '?'
+      navigate(`${callbackUrl}${separator}captchaDone=${success}`, { replace: true })
+    }
+  }, [callbackUrl, navigate])
+
+  const containerRef = useRef(null)
+  const isRendered = useRef(false)
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Dynamically load Google reCAPTCHA script
     const loadScript = () => {
-      if (window.grecaptcha) {
-        renderCaptcha()
+      if (window.turnstile) {
+        renderTurnstile()
         return
       }
 
-      window.onRecaptchaLoad = () => {
-        renderCaptcha()
+      window.onTurnstileLoad = () => {
+        renderTurnstile()
       }
 
+      const existingScript = document.querySelector('script[src*="turnstile/v0/api.js"]')
+      if (existingScript) return
+
       const script = document.createElement('script')
-      script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit'
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit'
       script.async = true
       script.defer = true
       document.body.appendChild(script)
     }
 
-    const renderCaptcha = () => {
+    const renderTurnstile = () => {
+      if (isRendered.current) return
       setIsLoading(false)
       const config = getGlobalRuntimeConfig()
-      const siteKey = config?.recaptchaSiteKey || '6LedABAtAAAAAOBhX3sS_v8h6g5e-eG4P-Z3t0oZ'
+      const siteKey = config?.captchaSiteKey || config?.recaptchaSiteKey || '0x4AAAAAADgL0IjHaom1GpZW'
 
       try {
-        if (window.grecaptcha && recaptchaRef.current) {
-          window.grecaptcha.render(recaptchaRef.current, {
+        if (window.turnstile && containerRef.current) {
+          containerRef.current.innerHTML = ''
+
+          const captchaDiv = document.createElement('div')
+          containerRef.current.appendChild(captchaDiv)
+
+          isRendered.current = true
+          window.turnstile.render(captchaDiv, {
             sitekey: siteKey,
-            callback: (token) => {
-              sessionStorage.setItem('dsms_captcha_token', token)
-              navigate(callbackUrl, { replace: true })
+            callback: async (token) => {
+              setIsLoading(true)
+              setError(null)
+              try {
+                // Validate with server → sets captcha_verified_token cookie
+                await validateCaptcha(token)
+
+                 // Return control to Login page — Login page will re-submit credentials
+                 handleRedirect(true)
+              } catch (err) {
+                setError(err.message || 'Failed to complete security challenge. Please try again.')
+                isRendered.current = false
+                setIsLoading(false)
+              }
             },
             'error-callback': () => {
-              setError('Failed to load CAPTCHA verification. Please reload.')
+              isRendered.current = false
+              setError('Failed to load Turnstile verification. Please reload.')
             },
             theme: 'dark'
           })
         }
       } catch (err) {
-        console.error('reCAPTCHA render error:', err)
+        isRendered.current = false
+        console.error('Turnstile render error:', err)
       }
     }
 
     loadScript()
 
     return () => {
-      delete window.onRecaptchaLoad
+      delete window.onTurnstileLoad
+      if (containerRef.current) {
+        containerRef.current.innerHTML = ''
+      }
+      isRendered.current = false
     }
-  }, [callbackUrl, navigate])
+  }, [handleRedirect])
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
@@ -73,7 +112,7 @@ export default function Challenge() {
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md z-10">
-          
+
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-extrabold text-xl shadow-lg shadow-indigo-500/25 mb-4">
@@ -89,7 +128,7 @@ export default function Challenge() {
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <p className="text-sm text-slate-400">
-                  Please verify that you are human to complete your request.
+                  Please verify that you are human to continue signing in.
                 </p>
               </div>
 
@@ -101,18 +140,18 @@ export default function Challenge() {
               )}
 
               {/* CAPTCHA container */}
-              <div className="flex justify-center py-4 min-h-[78px]">
+              <div className="flex flex-col items-center justify-center py-4 min-h-[78px] gap-4">
                 {isLoading && (
                   <div className="flex items-center gap-2 text-slate-400 text-sm">
                     <RefreshCw className="h-4 w-4 animate-spin text-indigo-400" />
                     Loading security check...
                   </div>
                 )}
-                <div ref={recaptchaRef} />
+                <div ref={containerRef} />
               </div>
 
               <button
-                onClick={() => navigate('/login', { replace: true })}
+                onClick={() => handleRedirect(false)}
                 className="w-full text-center text-xs text-slate-500 hover:text-slate-400 transition-colors"
               >
                 Cancel and Go Back

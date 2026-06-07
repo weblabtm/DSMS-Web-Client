@@ -76,7 +76,7 @@ async function request(path, { method = 'POST', body, token } = {}) {
  * @param {{ identifier: string; password: string; tenantId?: string; branchId?: string }} credentials
  * @returns {Promise<import('./authTypes').AuthSessionResponse>}
  */
-export async function login({ identifier, password, tenantId, branchId, rememberMe, mfaToken }) {
+export async function login({ identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken }) {
   return request('/auth/login', {
     body: {
       identifier,
@@ -85,6 +85,7 @@ export async function login({ identifier, password, tenantId, branchId, remember
       ...(branchId ? { branchId } : {}),
       ...(rememberMe !== undefined ? { rememberMe } : {}),
       ...(mfaToken ? { mfaToken } : {}),
+      ...(captchaToken ? { captchaToken } : {}),
     },
   })
 }
@@ -175,12 +176,14 @@ export async function checkTenantSlugAvailability(slug) {
  * @param {{ email?: string; phoneNumber?: string; captchaToken?: string }} payload
  * @returns {Promise<{ message: string; token: string }>}
  */
-export async function generateOtp({ email, phoneNumber, captchaToken }) {
+export async function generateOtp({ email, phoneNumber, captchaToken, mfaToken, unlockToken }) {
   return request('/auth/otp/generate', {
     body: {
       ...(email ? { email } : {}),
       ...(phoneNumber ? { phoneNumber } : {}),
       ...(captchaToken ? { captchaToken } : {}),
+      ...(mfaToken ? { mfaToken } : {}),
+      ...(unlockToken ? { unlockToken } : {}),
     },
   })
 }
@@ -211,5 +214,28 @@ export async function validateOtp({ otp, token, mfaToken, unlockToken }) {
 export async function getUnlockDetails(token) {
   return request(`/auth/unlock/details?token=${encodeURIComponent(token)}`, {
     method: 'GET',
+  })
+}
+
+/**
+ * Validate a CAPTCHA token and set the captcha_verified_token cookie.
+ *
+ * @param {string} captchaToken
+ * @returns {Promise<{ message: string; token: string }>}
+ */
+export async function validateCaptcha(captchaToken) {
+  return request('/auth/captcha/validate', {
+    body: { captchaToken }
+  })
+}
+
+/**
+ * Finalize the login session using verification state cookies.
+ *
+ * @returns {Promise<import('./authTypes').AuthSessionResponse>}
+ */
+export async function completeLogin() {
+  return request('/auth/login/complete', {
+    body: {}
   })
 }

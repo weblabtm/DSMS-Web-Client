@@ -67,15 +67,31 @@ export const useAuthStore = create((set, get) => ({
   /**
    * Log in with identifier and password
    */
-  login: async ({ identifier, password, tenantId, branchId, rememberMe, mfaToken }) => {
+  login: async ({ identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken }) => {
     set({ isLoading: true, error: null })
     try {
-      const session = await authApi.login({ identifier, password, tenantId, branchId, rememberMe, mfaToken })
+      const session = await authApi.login({ identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken })
 
       get().setSession(session)
       return session
     } catch (err) {
       const message = err.message || 'An error occurred during sign in'
+      set({ error: message, isLoading: false })
+      throw err
+    }
+  },
+
+  /**
+   * Finalize the login session using verification state cookies
+   */
+  completeLogin: async () => {
+    set({ isLoading: true, error: null })
+    try {
+      const session = await authApi.completeLogin()
+      get().setSession(session)
+      return session
+    } catch (err) {
+      const message = err.message || 'An error occurred during final authentication'
       set({ error: message, isLoading: false })
       throw err
     }
@@ -126,7 +142,11 @@ export const useAuthStore = create((set, get) => ({
   },
 
   /**
-   * Log out of the current session
+   * Log out of the current session.
+   *
+   * Only clears local state and calls the server to invalidate the refresh
+   * token.  Navigation back to /login is handled by the route guards
+   * (PrivateRoute / isAuthenticated effects) so we never force a hard reload.
    */
   logout: async () => {
     const { user } = get()
@@ -148,9 +168,6 @@ export const useAuthStore = create((set, get) => ({
         console.warn('Logout endpoint call failed:', err)
       }
     }
-
-    if (typeof window !== 'undefined') {
-      window.location.replace(buildBaseHostUrl('/login'))
-    }
+    // ✦ No window.location.replace here — React Router guards redirect to /login
   },
 }))

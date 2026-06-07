@@ -1,17 +1,9 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { ShieldAlert, ArrowLeft, LogOut } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { Button } from './button'
 import { buildBaseHostUrl, buildTenantPath } from '../config/runtime-config'
-
-function BaseHostRedirect({ to }) {
-  React.useEffect(() => {
-    window.location.replace(buildBaseHostUrl(to))
-  }, [to])
-
-  return null
-}
 
 export function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, isInitialized, user, logout } = useAuth()
@@ -33,11 +25,12 @@ export function ProtectedRoute({ children, allowedRoles }) {
     )
   }
 
-  // 2. Redirect to /login if unauthenticated
+  // 2. Redirect to /login if unauthenticated — use React Router Navigate (no hard reload)
   if (!isAuthenticated || !user) {
     const nextUrl = window.location.pathname + window.location.search
-    return <BaseHostRedirect to={`/login?next=${encodeURIComponent(nextUrl)}`} />
+    return <Navigate to={`/login?next=${encodeURIComponent(nextUrl)}`} replace />
   }
+
 
   // 3. Role verification (if roles are restricted)
   if (allowedRoles && allowedRoles.length > 0) {

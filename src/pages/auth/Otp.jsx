@@ -116,17 +116,18 @@ export default function Otp() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  // Redirect logic
+  // Redirect back to callbackUrl with otpDone param.
+  // Use React Router navigate for relative URLs to preserve SPA navigation.
   const handleRedirect = (success) => {
     if (timerRef.current) clearInterval(timerRef.current)
-    
-    const separator = callbackUrl.includes('?') ? '&' : '?'
-    const redirectTarget = `${callbackUrl}${separator}success=${success}`
-    
-    if (redirectTarget.startsWith('http://') || redirectTarget.startsWith('https://')) {
-      window.location.replace(redirectTarget)
+
+    if (callbackUrl.startsWith('http://') || callbackUrl.startsWith('https://')) {
+      const url = new URL(callbackUrl)
+      url.searchParams.set('otpDone', String(success))
+      window.location.replace(url.toString())
     } else {
-      navigate(redirectTarget, { replace: true })
+      const separator = callbackUrl.includes('?') ? '&' : '?'
+      navigate(`${callbackUrl}${separator}otpDone=${success}`, { replace: true })
     }
   }
 
@@ -138,7 +139,9 @@ export default function Otp() {
     try {
       const response = await generateOtp({
         phoneNumber: actionParam === 'unlock' ? unlockPhone : phoneParam,
-        email: actionParam === 'unlock' ? unlockEmail : emailParam
+        email: actionParam === 'unlock' ? unlockEmail : emailParam,
+        mfaToken: mfaTokenParam || undefined,
+        unlockToken: actionParam === 'unlock' ? tokenParam : undefined
       })
       setOtpToken(response.token)
       setPhase('verify')
@@ -171,15 +174,21 @@ export default function Otp() {
         mfaToken: mfaTokenParam,
         unlockToken: actionParam === 'unlock' ? tokenParam : undefined
       })
-      setPhase('success')
-      if (timerRef.current) clearInterval(timerRef.current)
-      setTimeout(() => {
-        if (actionParam === 'unlock') {
+
+      if (actionParam === 'unlock') {
+        setPhase('success')
+        if (timerRef.current) clearInterval(timerRef.current)
+        setTimeout(() => {
           navigate('/login', { replace: true })
-        } else {
+        }, 2000)
+      } else {
+        // OTP verified — send control back to Login page to complete the session
+        setPhase('success')
+        if (timerRef.current) clearInterval(timerRef.current)
+        setTimeout(() => {
           handleRedirect(true)
-        }
-      }, 2000)
+        }, 2000)
+      }
     } catch (err) {
       setError(err.message || 'Invalid or expired OTP. Please try again.')
       // Reset inputs on incorrect attempt to permit retry
@@ -238,7 +247,9 @@ export default function Otp() {
     try {
       const response = await generateOtp({
         phoneNumber: actionParam === 'unlock' ? unlockPhone : phoneParam,
-        email: actionParam === 'unlock' ? unlockEmail : emailParam
+        email: actionParam === 'unlock' ? unlockEmail : emailParam,
+        mfaToken: mfaTokenParam || undefined,
+        unlockToken: actionParam === 'unlock' ? tokenParam : undefined
       })
       setOtpToken(response.token)
       startTimer()
