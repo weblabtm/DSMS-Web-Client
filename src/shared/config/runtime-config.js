@@ -10,7 +10,7 @@ const toStringOrNull = (value) => {
     return text.length > 0 ? text : null
 }
 
-const getGlobalRuntimeConfig = () => {
+export const getGlobalRuntimeConfig = () => {
     if (typeof window === 'undefined') {
         return null
     }
