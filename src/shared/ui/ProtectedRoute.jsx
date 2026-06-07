@@ -1,20 +1,13 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { ShieldAlert, ArrowLeft, LogOut } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { Button } from './button'
-import { buildBaseHostUrl, buildTenantPath } from '../config/runtime-config'
+import { buildTenantPath } from '../config/runtime-config'
+import { useTenantStore } from '../store/tenantStore'
 
-function BaseHostRedirect({ to }) {
-  React.useEffect(() => {
-    window.location.replace(buildBaseHostUrl(to))
-  }, [to])
-
-  return null
-}
-
-export function ProtectedRoute({ children, allowedRoles }) {
+export function ProtectedRoute({ children, allowedRoles, bypassResolutionCheck = false }) {
   const { isAuthenticated, isInitialized, user, logout } = useAuth()
+  const isResolved = useTenantStore((state) => state.isResolved)
 
   // 1. Wait for store initialization (localStorage check + background refresh)
   if (!isInitialized) {
@@ -33,11 +26,18 @@ export function ProtectedRoute({ children, allowedRoles }) {
     )
   }
 
-  // 2. Redirect to /login if unauthenticated
+  // 2. Redirect to /login if unauthenticated — use React Router Navigate (no hard reload)
   if (!isAuthenticated || !user) {
     const nextUrl = window.location.pathname + window.location.search
-    return <BaseHostRedirect to={`/login?next=${encodeURIComponent(nextUrl)}`} />
+    return <Navigate to={`/login?next=${encodeURIComponent(nextUrl)}`} replace />
   }
+
+  // 2.5. Enforce tenant resolution for non-Super Admin users
+  const isSuperAdmin = user.roles?.includes('Super Admin')
+  if (!isSuperAdmin && !isResolved && !bypassResolutionCheck) {
+    return <Navigate to="/resolve-user" replace />
+  }
+
 
   // 3. Role verification (if roles are restricted)
   if (allowedRoles && allowedRoles.length > 0) {

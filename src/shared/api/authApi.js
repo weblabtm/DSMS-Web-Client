@@ -19,11 +19,12 @@ import { getRuntimeApiBaseUrl } from '../config/runtime-config.js'
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class AuthApiError extends Error {
-  /** @param {string} message @param {number} status */
-  constructor(message, status) {
+  /** @param {string} message @param {number} status @param {any} [data] */
+  constructor(message, status, data = null) {
     super(message)
     this.name = 'AuthApiError'
     this.status = status
+    this.data = data
   }
 }
 
@@ -43,6 +44,7 @@ async function request(path, { method = 'POST', body, token } = {}) {
   const response = await fetch(`${getRuntimeApiBaseUrl()}${path}`, {
     method,
     headers,
+    credentials: 'include',
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 
@@ -58,7 +60,7 @@ async function request(path, { method = 'POST', body, token } = {}) {
 
   if (!response.ok) {
     const message = data?.message ?? data?.error ?? `Request failed (${response.status})`
-    throw new AuthApiError(message, response.status)
+    throw new AuthApiError(message, response.status, data)
   }
 
   return data
@@ -74,13 +76,19 @@ async function request(path, { method = 'POST', body, token } = {}) {
  * @param {{ identifier: string; password: string; tenantId?: string; branchId?: string }} credentials
  * @returns {Promise<import('./authTypes').AuthSessionResponse>}
  */
-export async function login({ identifier, password, tenantId, branchId }) {
+export async function login({ identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken, deviceFingerprint, deviceOs, devicePlatform }) {
   return request('/auth/login', {
     body: {
       identifier,
       password,
       ...(tenantId ? { tenantId } : {}),
       ...(branchId ? { branchId } : {}),
+      ...(rememberMe !== undefined ? { rememberMe } : {}),
+      ...(mfaToken ? { mfaToken } : {}),
+      ...(captchaToken ? { captchaToken } : {}),
+      ...(deviceFingerprint ? { deviceFingerprint } : {}),
+      ...(deviceOs ? { deviceOs } : {}),
+      ...(devicePlatform ? { devicePlatform } : {}),
     },
   })
 }
@@ -114,22 +122,22 @@ export async function register(
 /**
  * Obtain a new access token using a refresh token.
  *
- * @param {string} refreshToken
+ * @param {string} [refreshToken]
  * @returns {Promise<import('./authTypes').AuthSessionResponse>}
  */
 export async function refreshSession(refreshToken) {
-  return request('/auth/refresh', { body: { refreshToken } })
+  return request('/auth/refresh', { body: refreshToken ? { refreshToken } : undefined })
 }
 
 /**
  * Invalidate the current session on the server.
  * Fire-and-forget from the server's perspective; we always treat it as success.
  *
- * @param {string} refreshToken
+ * @param {string} [refreshToken]
  * @returns {Promise<void>}
  */
 export async function logout(refreshToken) {
-  await request('/auth/logout', { body: { refreshToken } }).catch(() => {
+  await request('/auth/logout', { body: refreshToken ? { refreshToken } : undefined }).catch(() => {
     // Ignore network / server errors during logout — local state is cleared anyway.
   })
 }
@@ -162,5 +170,114 @@ export async function createTenant(name, slug, tenantAdminIdentifier, accessToke
 export async function checkTenantSlugAvailability(slug) {
   return request(`/tenant/slug/${encodeURIComponent(slug)}/availability`, {
     method: 'GET',
+  })
+}
+
+/**
+ * Generate a new OTP code.
+ *
+ * @param {{ email?: string; phoneNumber?: string; captchaToken?: string; deviceFingerprint?: string; deviceOs?: string; devicePlatform?: string }} payload
+ * @returns {Promise<{ message: string; token: string }>}
+ */
+export async function generateOtp({ email, phoneNumber, captchaToken, mfaToken, unlockToken, deviceFingerprint, deviceOs, devicePlatform }) {
+  return request('/auth/otp/generate', {
+    body: {
+      ...(email ? { email } : {}),
+      ...(phoneNumber ? { phoneNumber } : {}),
+      ...(captchaToken ? { captchaToken } : {}),
+      ...(mfaToken ? { mfaToken } : {}),
+      ...(unlockToken ? { unlockToken } : {}),
+      ...(deviceFingerprint ? { deviceFingerprint } : {}),
+      ...(deviceOs ? { deviceOs } : {}),
+      ...(devicePlatform ? { devicePlatform } : {}),
+    },
+  })
+}
+
+/**
+ * Validate an OTP code.
+ *
+ * @param {{ otp: string; token?: string; deviceFingerprint?: string; deviceOs?: string; devicePlatform?: string }} payload
+ * @returns {Promise<{ message: string }>}
+ */
+export async function validateOtp({ otp, token, mfaToken, unlockToken, deviceFingerprint, deviceOs, devicePlatform }) {
+  return request('/auth/otp/validate', {
+    body: {
+      otp,
+      ...(token ? { token } : {}),
+      ...(mfaToken ? { mfaToken } : {}),
+      ...(unlockToken ? { unlockToken } : {}),
+      ...(deviceFingerprint ? { deviceFingerprint } : {}),
+      ...(deviceOs ? { deviceOs } : {}),
+      ...(devicePlatform ? { devicePlatform } : {}),
+    },
+  })
+}
+
+/**
+ * Fetch details for a locked account by token.
+ *
+ * @param {string} token
+ * @returns {Promise<{ email: string; phoneNumber: string }>}
+ */
+export async function getUnlockDetails(token) {
+  return request(`/auth/unlock/details?token=${encodeURIComponent(token)}`, {
+    method: 'GET',
+  })
+}
+
+/**
+ * Validate a CAPTCHA token and set the captcha_verified_token cookie.
+ *
+ * @param {string} captchaToken
+ * @param {{ deviceFingerprint?: string; deviceOs?: string; devicePlatform?: string }} [deviceInfo]
+ * @returns {Promise<{ message: string; token: string }>}
+ */
+export async function validateCaptcha(captchaToken, { deviceFingerprint, deviceOs, devicePlatform } = {}) {
+  return request('/auth/captcha/validate', {
+    body: {
+      captchaToken,
+      ...(deviceFingerprint ? { deviceFingerprint } : {}),
+      ...(deviceOs ? { deviceOs } : {}),
+      ...(devicePlatform ? { devicePlatform } : {}),
+    }
+  })
+}
+
+/**
+ * Finalize the login session using verification state cookies.
+ *
+ * @returns {Promise<import('./authTypes').AuthSessionResponse>}
+ */
+export async function completeLogin() {
+  return request('/auth/login/complete', {
+    body: {}
+  })
+}
+
+/**
+ * Fetch all active sessions for the currently authenticated user.
+ *
+ * @param {string} accessToken  Bearer token
+ * @returns {Promise<{ sessions: Array<{ sessionId: string; deviceOs?: string; devicePlatform?: string; deviceFingerprint?: string; createdAt: number; expiresAt: number; rememberMe: boolean }> }>}
+ */
+export async function getActiveSessions(accessToken) {
+  return request('/auth/sessions', {
+    method: 'GET',
+    token: accessToken,
+  })
+}
+
+/**
+ * Revoke (delete) a specific session by ID.
+ *
+ * @param {string} sessionId
+ * @param {string} accessToken  Bearer token of the currently authenticated user
+ * @returns {Promise<null>}
+ */
+export async function revokeSession(sessionId, accessToken) {
+  return request(`/auth/sessions/${encodeURIComponent(sessionId)}`, {
+    method: 'DELETE',
+    token: accessToken,
   })
 }

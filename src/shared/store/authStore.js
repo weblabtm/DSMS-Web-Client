@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import * as authApi from '../api/authApi'
-import { buildBaseHostUrl } from '../config/runtime-config'
+import { getDeviceInfo } from '../utils/deviceInfo'
 
 const STORAGE_KEY = 'dsms_session'
 
@@ -21,7 +21,9 @@ export const useAuthStore = create((set, get) => ({
    * Persist a session returned from auth APIs.
    */
   setSession: (session) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+    const safeSession = session ? { ...session } : {}
+    delete safeSession.refreshToken
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeSession))
     set({
       user: session,
       isAuthenticated: true,
@@ -38,7 +40,7 @@ export const useAuthStore = create((set, get) => ({
       const savedSession = localStorage.getItem(STORAGE_KEY)
       if (savedSession) {
         const parsed = JSON.parse(savedSession)
-        if (parsed && parsed.refreshToken) {
+        if (parsed && parsed.userId) {
           // Temporarily set the session from localStorage to get started
           set({
             user: parsed,
@@ -64,17 +66,41 @@ export const useAuthStore = create((set, get) => ({
   },
 
   /**
-   * Log in with identifier and password
+   * Log in with identifier and password.
+   * Device info is collected silently and attached to the request.
    */
-  login: async ({ identifier, password, tenantId, branchId }) => {
+  login: async ({ identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken }) => {
     set({ isLoading: true, error: null })
     try {
-      const session = await authApi.login({ identifier, password, tenantId, branchId })
+      // Collect device metadata without blocking on failures
+      let deviceInfo = {}
+      try { deviceInfo = await getDeviceInfo() } catch { /* non-fatal */ }
+
+      const session = await authApi.login({
+        identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken,
+        ...deviceInfo,
+      })
 
       get().setSession(session)
       return session
     } catch (err) {
       const message = err.message || 'An error occurred during sign in'
+      set({ error: message, isLoading: false })
+      throw err
+    }
+  },
+
+  /**
+   * Finalize the login session using verification state cookies
+   */
+  completeLogin: async () => {
+    set({ isLoading: true, error: null })
+    try {
+      const session = await authApi.completeLogin()
+      get().setSession(session)
+      return session
+    } catch (err) {
+      const message = err.message || 'An error occurred during final authentication'
       set({ error: message, isLoading: false })
       throw err
     }
@@ -105,10 +131,11 @@ export const useAuthStore = create((set, get) => ({
    */
   refreshToken: async () => {
     const { user } = get()
-    if (!user || !user.refreshToken) return
+    const savedSession = localStorage.getItem(STORAGE_KEY)
+    if (!savedSession) return
 
     try {
-      const newSession = await authApi.refreshSession(user.refreshToken)
+      const newSession = await authApi.refreshSession(user?.refreshToken)
 
       get().setSession(newSession)
       return newSession
@@ -124,7 +151,11 @@ export const useAuthStore = create((set, get) => ({
   },
 
   /**
-   * Log out of the current session
+   * Log out of the current session.
+   *
+   * Only clears local state and calls the server to invalidate the refresh
+   * token.  Navigation back to /login is handled by the route guards
+   * (PrivateRoute / isAuthenticated effects) so we never force a hard reload.
    */
   logout: async () => {
     const { user } = get()
@@ -146,9 +177,29 @@ export const useAuthStore = create((set, get) => ({
         console.warn('Logout endpoint call failed:', err)
       }
     }
+    // ✦ No window.location.replace here — React Router guards redirect to /login
+  },
 
-    if (typeof window !== 'undefined') {
-      window.location.replace(buildBaseHostUrl('/login'))
-    }
+  /**
+   * Fetch all active sessions for the authenticated user.
+   * @returns {Promise<Array>}
+   */
+  getActiveSessions: async () => {
+    const { user } = get()
+    const accessToken = user?.accessToken
+    if (!accessToken) throw new Error('Not authenticated')
+    const data = await authApi.getActiveSessions(accessToken)
+    return data?.sessions ?? []
+  },
+
+  /**
+   * Revoke a specific session by ID.
+   * @param {string} sessionId
+   */
+  revokeSession: async (sessionId) => {
+    const { user } = get()
+    const accessToken = user?.accessToken
+    if (!accessToken) throw new Error('Not authenticated')
+    await authApi.revokeSession(sessionId, accessToken)
   },
 }))
