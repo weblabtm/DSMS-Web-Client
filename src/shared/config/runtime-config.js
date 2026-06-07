@@ -56,19 +56,30 @@ export const buildTenantPath = (tenantSlug, pathname = '/dashboard') => {
     return `/${encodeURIComponent(String(tenantSlug).trim())}${normalizedPath}`
 }
 
-export const createFallbackRuntimeConfig = () => ({
-    apiBaseUrl: window.location.origin,
-    host: window.location.host,
-    hostname: window.location.hostname,
-    tenantSlug: null,
-})
+export const createFallbackRuntimeConfig = () => {
+    let fallbackApiUrl = window.location.origin
+    try {
+        fallbackApiUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin
+    } catch {
+        // env may not be accessible
+    }
+    return {
+        apiBaseUrl: fallbackApiUrl,
+        host: window.location.host,
+        hostname: window.location.hostname,
+        tenantSlug: null,
+    }
+}
 
 export async function loadRuntimeConfig() {
     // In dev mode (Vite proxy active) OR when the page is accessed from a non-localhost origin
     // (e.g. a LAN device via 192.168.x.x or 172.x.x.x), use a relative /config URL so the
     // Vite proxy forwards it to the real backend — no absolute localhost URL, no CORS issues.
-    const isLanAccess = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
     const isDev = import.meta.env.DEV;
+    const isLanAccess = typeof window !== 'undefined' && 
+                        isDev && 
+                        window.location.hostname !== 'localhost' && 
+                        window.location.hostname !== '127.0.0.1';
 
     let configUrl;
     if (isDev || isLanAccess) {
