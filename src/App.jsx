@@ -6,6 +6,8 @@ import { useAuthStore } from './shared/store/authStore'
 import Landing from './pages/Landing.jsx'
 import Login from './pages/auth/Login.jsx'
 import Register from './pages/Register.jsx'
+import PasswordResetRequest from './pages/auth/PasswordResetRequest.jsx'
+import PasswordResetConfirm from './pages/auth/PasswordResetConfirm.jsx'
 import TenantDashboard from './pages/dashboard/TenantDashboard.jsx'
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard.jsx'
 
@@ -68,6 +70,8 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth/password-reset/request" element={<PasswordResetRequest />} />
+        <Route path="/auth/password-reset/confirm" element={<PasswordResetConfirm />} />
 
         {/* Tenant Dashboard Route */}
         <Route
