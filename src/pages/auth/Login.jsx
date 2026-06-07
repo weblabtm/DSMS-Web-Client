@@ -154,8 +154,9 @@ export default function Login() {
           if (msg === 'OTP required') {
             clearError()
             const phone = data.phoneNumber || ''
+            const email = data.email || creds.identifier || ''
             navigate(
-              `/otp?phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(creds.identifier)}&callbackUrl=${encodeURIComponent('/login')}`,
+              `/otp?phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent('/login')}`,
               { replace: true }
             )
           }
@@ -195,8 +196,9 @@ export default function Login() {
         // CAPTCHA either not required or already satisfied — hand off to OTP page
         clearError()
         const phone = data.phoneNumber || ''
+        const email = data.email || identifier || ''
         navigate(
-          `/otp?phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(identifier)}&callbackUrl=${encodeURIComponent('/login')}`,
+          `/otp?phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent('/login')}`,
           { replace: true }
         )
         return

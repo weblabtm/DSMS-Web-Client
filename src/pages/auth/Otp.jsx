@@ -45,6 +45,9 @@ export default function Otp() {
   const [unlockEmail, setUnlockEmail] = useState('')
   const [unlockPhone, setUnlockPhone] = useState('')
 
+  const displayEmail = actionParam === 'unlock' ? (unlockEmail || emailParam) : emailParam
+  const displayPhone = actionParam === 'unlock' ? (unlockPhone || phoneParam) : phoneParam
+
   useEffect(() => {
     if (actionParam === 'unlock' && tokenParam) {
       const loadDetails = async () => {
@@ -138,8 +141,8 @@ export default function Otp() {
     showLoader('Requesting verification code...')
     try {
       const response = await generateOtp({
-        phoneNumber: actionParam === 'unlock' ? unlockPhone : phoneParam,
-        email: actionParam === 'unlock' ? unlockEmail : emailParam,
+        phoneNumber: displayPhone,
+        email: displayEmail,
         mfaToken: mfaTokenParam || undefined,
         unlockToken: actionParam === 'unlock' ? tokenParam : undefined
       })
@@ -246,8 +249,8 @@ export default function Otp() {
     showLoader('Resending verification code...')
     try {
       const response = await generateOtp({
-        phoneNumber: actionParam === 'unlock' ? unlockPhone : phoneParam,
-        email: actionParam === 'unlock' ? unlockEmail : emailParam,
+        phoneNumber: displayPhone,
+        email: displayEmail,
         mfaToken: mfaTokenParam || undefined,
         unlockToken: actionParam === 'unlock' ? tokenParam : undefined
       })
@@ -298,15 +301,24 @@ export default function Otp() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <div className="text-center space-y-2">
-                    <p className="text-sm text-slate-400">
-                      To complete this verification request, we must send a security code to your phone number:
+                  <div className="text-center space-y-4">
+                    <p className="text-sm text-slate-400 leading-relaxed">
+                      To complete this verification request, a security code will be generated for your account details:
                     </p>
-                    <div className="flex items-center justify-center gap-3 py-4">
-                      <Smartphone className="h-5 w-5 text-indigo-400" />
-                      <span className="text-xl font-bold tracking-wider text-white">
-                        {maskPhoneNumber(actionParam === 'unlock' ? unlockPhone : phoneParam)}
-                      </span>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-3 text-left">
+                      <div className="flex items-start justify-between gap-4 text-xs">
+                        <span className="text-slate-500 font-semibold uppercase tracking-wider">Email Address</span>
+                        <span className="text-slate-200 font-medium break-all text-right">
+                          {displayEmail || '—'}
+                        </span>
+                      </div>
+                      <div className="h-px bg-slate-800/40" />
+                      <div className="flex items-center justify-between gap-4 text-xs">
+                        <span className="text-slate-500 font-semibold uppercase tracking-wider">Phone Number</span>
+                        <span className="text-slate-200 font-medium text-right font-mono">
+                          {maskPhoneNumber(displayPhone)}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -353,13 +365,25 @@ export default function Otp() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <div className="text-center space-y-2">
-                    <p className="text-sm text-slate-400">
-                      We've sent a 6-digit verification code to
+                  <div className="text-center space-y-4">
+                    <p className="text-sm text-slate-400 leading-relaxed">
+                      We've sent a 6-digit verification code to the registered details below:
                     </p>
-                    <p className="text-base font-bold text-white tracking-wider">
-                      {maskPhoneNumber(actionParam === 'unlock' ? unlockPhone : phoneParam)}
-                    </p>
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-3 text-left">
+                      <div className="flex items-start justify-between gap-4 text-xs">
+                        <span className="text-slate-500 font-semibold uppercase tracking-wider">Email Address</span>
+                        <span className="text-slate-200 font-medium break-all text-right">
+                          {displayEmail || '—'}
+                        </span>
+                      </div>
+                      <div className="h-px bg-slate-800/40" />
+                      <div className="flex items-center justify-between gap-4 text-xs">
+                        <span className="text-slate-500 font-semibold uppercase tracking-wider">Phone Number</span>
+                        <span className="text-slate-200 font-medium text-right font-mono">
+                          {maskPhoneNumber(displayPhone)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Timer display */}
