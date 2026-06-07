@@ -1,44 +1,70 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Mail, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { Button } from '../../shared/ui/button.jsx'
 import { buildBaseHostUrl } from '../../shared/config/runtime-config.js'
 
-export default function PasswordResetRequest() {
+export default function PasswordResetSetPassword() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const location = useLocation()
+  const email = location.state?.email || ''
+  const otp = location.state?.otp || ''
+
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
+  useEffect(() => {
+    if (!email || !otp) {
+      navigate('/resetPassword/request')
+    }
+  }, [email, otp, navigate])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!email) return
+    
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long.')
+      return
+    }
 
     setIsLoading(true)
     setError('')
 
     try {
-      // Call OTP generate endpoint
-      const response = await fetch('http://localhost:3000/auth/otp/generate', {
+      // This endpoint needs to be created in backend
+      const response = await fetch('http://localhost:3000/auth/password-reset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        credentials: 'include',
+        body: JSON.stringify({
+          email,
+          otp,
+          newPassword,
+        }),
       })
 
       const data = await response.json()
 
       if (response.ok) {
         setSuccess(true)
-        // Navigate to verify page with email
         setTimeout(() => {
-          navigate('/resetPassword/verify', { state: { email } })
-        }, 2000)
+          navigate('/login')
+        }, 3000)
       } else {
-        setError(data.message || 'Failed to send reset code. Please try again.')
+        setError(data.message || 'Failed to reset password. Please try again.')
       }
     } catch (err) {
       setError('Network error. Please check your connection and try again.')
@@ -77,11 +103,11 @@ export default function PasswordResetRequest() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/resetPassword/verify', { state: { email } })}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors mb-6"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm font-medium">Back to Login</span>
+            <span className="text-sm font-medium">Back</span>
           </motion.button>
 
           {/* Heading */}
@@ -91,9 +117,11 @@ export default function PasswordResetRequest() {
             transition={{ delay: 0.2 }}
             className="mb-8"
           >
-            <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Forgot Password?</h1>
+            <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
+              Set New Password
+            </h1>
             <p className="text-slate-600 text-base leading-relaxed">
-              Enter your email address and we'll send you a verification code to reset your password.
+              Create a new secure password for your account.
             </p>
           </motion.div>
 
@@ -130,29 +158,64 @@ export default function PasswordResetRequest() {
                 <CheckCircle className="h-5 w-5 shrink-0 text-green-600 mt-0.5" />
                 <div className="leading-normal">
                   <span className="font-semibold">Success! </span>
-                  Verification code sent to your email. Redirecting...
+                  Password reset successfully. Redirecting to login...
                 </div>
               </motion.div>
             )}
 
-            {/* Email Input */}
+            {/* New Password Input */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700 block">
-                Email address
+                New Password
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-slate-600 transition-colors">
-                  <Mail className="h-5 w-5" />
+                  <Lock className="h-5 w-5" />
                 </div>
                 <input
-                  type="email"
+                  type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading || success}
-                  className="w-full h-12 pl-12 pr-4 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all duration-300 shadow-sm hover:shadow-md hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="••••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full h-12 pl-12 pr-12 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all duration-300 shadow-sm hover:shadow-md hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700 block">
+                Confirm New Password
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-slate-600 transition-colors">
+                  <Lock className="h-5 w-5" />
+                </div>
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full h-12 pl-12 pr-12 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all duration-300 shadow-sm hover:shadow-md hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
@@ -164,16 +227,16 @@ export default function PasswordResetRequest() {
             >
               <Button
                 type="submit"
-                disabled={isLoading || success || !email}
+                disabled={isLoading || success || !newPassword || !confirmPassword}
                 className="w-full flex items-center justify-center gap-2 h-12 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 {isLoading ? (
                   <>
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Sending...
+                    Resetting...
                   </>
                 ) : (
-                  'Send Verification Code'
+                  'Reset Password'
                 )}
               </Button>
             </motion.div>
