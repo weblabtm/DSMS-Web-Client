@@ -11,6 +11,9 @@ import Login from './pages/auth/Login.jsx'
 import Register from './pages/Register.jsx'
 import Otp from './pages/auth/Otp.jsx'
 import Challenge from './pages/auth/Challenge.jsx'
+import PasswordResetRequest from './pages/auth/PasswordResetRequest.jsx'
+import PasswordResetVerify from './pages/auth/PasswordResetVerify.jsx'
+import PasswordResetSetPassword from './pages/auth/PasswordResetSetPassword.jsx'
 import TenantDashboard from './pages/dashboard/TenantDashboard.jsx'
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard.jsx'
 
@@ -140,6 +143,9 @@ function App() {
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/otp" element={<PublicRoute><Otp /></PublicRoute>} />
         <Route path="/challenge" element={<PublicRoute><Challenge /></PublicRoute>} />
+        <Route path="/resetPassword/request" element={<PublicRoute><PasswordResetRequest /></PublicRoute>} />
+        <Route path="/resetPassword/verify" element={<PublicRoute><PasswordResetVerify /></PublicRoute>} />
+        <Route path="/resetPassword/set-password" element={<PublicRoute><PasswordResetSetPassword /></PublicRoute>} />
 
         {/* Resolution Flow Routes */}
         <Route

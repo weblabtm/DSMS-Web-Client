@@ -323,9 +323,13 @@ export default function Login() {
                 </button>
               </div>
               <div className="text-right">
-                <a href="#forgot" className="text-sm font-semibold text-slate-900 hover:text-slate-700 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => navigate('/resetPassword/request', { state: { email: identifier } })}
+                  className="text-sm font-semibold text-slate-900 hover:text-slate-700 transition-colors"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
             </motion.div>
 
