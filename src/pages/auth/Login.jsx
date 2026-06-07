@@ -19,6 +19,37 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
 
+  const [lockoutTimeLeft, setLockoutTimeLeft] = useState(0)
+
+  useEffect(() => {
+    if (error && error.includes('Your account has been locked. Try again in')) {
+      const match = error.match(/(\d+)\s+minutes\s+(\d+)\s+seconds/)
+      if (match) {
+        const mins = parseInt(match[1], 10)
+        const secs = parseInt(match[2], 10)
+        const totalSecs = mins * 60 + secs
+        setLockoutTimeLeft(totalSecs)
+      }
+    } else {
+      setLockoutTimeLeft(0)
+    }
+  }, [error])
+
+  useEffect(() => {
+    if (lockoutTimeLeft <= 0) return
+    const timer = setInterval(() => {
+      setLockoutTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          clearError()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [lockoutTimeLeft, clearError])
+
   const resolvePostLoginTarget = useCallback((session) => {
     const searchParams = new URLSearchParams(window.location.search)
     const nextUrl = searchParams.get('next')
@@ -65,13 +96,15 @@ export default function Login() {
           window.history.replaceState({}, document.title, window.location.pathname);
 
           // Perform auto-login
-          showLoader('Completing MFA authentication...')
+          showLoader('Completing authentication...')
           login({
             identifier: savedId,
             password: savedPassword,
             rememberMe: savedRemember,
             mfaToken: savedMfaToken,
+            captchaToken: sessionStorage.getItem('dsms_captcha_token') || undefined,
           }).then((session) => {
+            sessionStorage.removeItem('dsms_captcha_token');
             hideLoader()
             if (session && session.message === 'OTP required') {
               const phone = session.phoneNumber || '';
@@ -87,6 +120,9 @@ export default function Login() {
               const phone = data.phoneNumber || '';
               const mfaToken = data.mfaToken || '';
               navigate(getOtpRedirectUrl(phone, savedId, mfaToken), { replace: true });
+            } else if (err.message === 'CAPTCHA required' || data.message === 'CAPTCHA required') {
+              sessionStorage.setItem('dsms_temp_login', JSON.stringify({ identifier: savedId, password: savedPassword, rememberMe: savedRemember }));
+              navigate(`/challenge?callbackUrl=${encodeURIComponent('/login?success=true')}`, { replace: true });
             }
           });
         } catch (err) {
@@ -116,8 +152,10 @@ export default function Login() {
         identifier,
         password,
         rememberMe,
+        captchaToken: sessionStorage.getItem('dsms_captcha_token') || undefined,
       })
 
+      sessionStorage.removeItem('dsms_captcha_token');
       hideLoader()
       if (session && session.message === 'OTP required') {
         const phone = session.phoneNumber || '';
@@ -130,13 +168,16 @@ export default function Login() {
       navigate(resolvePostLoginTarget(session), { replace: true })
     } catch (err) {
       hideLoader()
-      // Check if OTP is required
       const data = err.data || {};
       if (err.message === 'OTP required' || data.message === 'OTP required') {
         const phone = data.phoneNumber || '';
         const mfaToken = data.mfaToken || '';
         sessionStorage.setItem('dsms_temp_login', JSON.stringify({ identifier, password, rememberMe, mfaToken }));
         navigate(getOtpRedirectUrl(phone, identifier, mfaToken), { replace: true });
+        return;
+      } else if (err.message === 'CAPTCHA required' || data.message === 'CAPTCHA required') {
+        sessionStorage.setItem('dsms_temp_login', JSON.stringify({ identifier, password, rememberMe }));
+        navigate(`/challenge?callbackUrl=${encodeURIComponent('/login?success=true')}`, { replace: true });
         return;
       }
     }
@@ -197,7 +238,7 @@ export default function Login() {
                   <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
                   <div className="leading-normal">
                     <span className="font-semibold">Sign in failed: </span>
-                    {error}
+                    {lockoutTimeLeft > 0 ? `Your account has been locked. Try again in ${Math.floor(lockoutTimeLeft / 60)} minutes ${lockoutTimeLeft % 60} seconds.` : error}
                   </div>
                 </motion.div>
               )}

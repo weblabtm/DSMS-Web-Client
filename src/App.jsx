@@ -10,6 +10,7 @@ import Landing from './pages/Landing.jsx'
 import Login from './pages/auth/Login.jsx'
 import Register from './pages/Register.jsx'
 import Otp from './pages/auth/Otp.jsx'
+import Challenge from './pages/auth/Challenge.jsx'
 import TenantDashboard from './pages/dashboard/TenantDashboard.jsx'
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard.jsx'
 
@@ -119,6 +120,7 @@ function App() {
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/otp" element={<PublicRoute><Otp /></PublicRoute>} />
+        <Route path="/challenge" element={<PublicRoute><Challenge /></PublicRoute>} />
 
         {/* Tenant Dashboard Route */}
         <Route

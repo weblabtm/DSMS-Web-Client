@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Shield, Smartphone, Key, AlertCircle, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react'
 import { Button } from '../../shared/ui/button.jsx'
-import { generateOtp, validateOtp } from '../../shared/api/authApi.js'
+import { generateOtp, validateOtp, getUnlockDetails } from '../../shared/api/authApi.js'
 import { useUiStore } from '../../shared/store/uiStore'
 
 // Mask phone number: e.g. +94712345678 -> +94xxxxxxx678 or +94xxxxx678
@@ -32,14 +32,40 @@ export default function Otp() {
   const emailParam = searchParams.get('email') || ''
   const mfaTokenParam = searchParams.get('mfaToken') || ''
   const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const actionParam = searchParams.get('action') || ''
+  const tokenParam = searchParams.get('token') || ''
 
-  // Page phases: 'request' | 'verify' | 'success' | 'expired'
+  // Page phases: 'request' | 'verify' | 'success' | 'expired' | 'invalid-link'
   const [phase, setPhase] = useState('request')
   
   // States
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [otpToken, setOtpToken] = useState(null)
+  const [unlockEmail, setUnlockEmail] = useState('')
+  const [unlockPhone, setUnlockPhone] = useState('')
+
+  useEffect(() => {
+    if (actionParam === 'unlock' && tokenParam) {
+      const loadDetails = async () => {
+        setIsLoading(true)
+        setError(null)
+        showLoader('Loading unlock details...')
+        try {
+          const details = await getUnlockDetails(tokenParam)
+          setUnlockEmail(details.email)
+          setUnlockPhone(details.phoneNumber)
+        } catch (err) {
+          setError(err.message || 'Your activation link has expired or is invalid. Please contact the Driving School to reactivate your account.')
+          setPhase('invalid-link')
+        } finally {
+          setIsLoading(false)
+          hideLoader()
+        }
+      }
+      loadDetails()
+    }
+  }, [actionParam, tokenParam, showLoader, hideLoader])
   
   // OTP Verification Code (6 digits)
   const [code, setCode] = useState(['', '', '', '', '', ''])
@@ -111,8 +137,8 @@ export default function Otp() {
     showLoader('Requesting verification code...')
     try {
       const response = await generateOtp({
-        phoneNumber: phoneParam,
-        email: emailParam
+        phoneNumber: actionParam === 'unlock' ? unlockPhone : phoneParam,
+        email: actionParam === 'unlock' ? unlockEmail : emailParam
       })
       setOtpToken(response.token)
       setPhase('verify')
@@ -139,11 +165,20 @@ export default function Otp() {
     setError(null)
     showLoader('Verifying code...')
     try {
-      await validateOtp({ otp: otpCode, token: otpToken, mfaToken: mfaTokenParam })
+      await validateOtp({
+        otp: otpCode,
+        token: otpToken,
+        mfaToken: mfaTokenParam,
+        unlockToken: actionParam === 'unlock' ? tokenParam : undefined
+      })
       setPhase('success')
       if (timerRef.current) clearInterval(timerRef.current)
       setTimeout(() => {
-        handleRedirect(true)
+        if (actionParam === 'unlock') {
+          navigate('/login', { replace: true })
+        } else {
+          handleRedirect(true)
+        }
       }, 2000)
     } catch (err) {
       setError(err.message || 'Invalid or expired OTP. Please try again.')
@@ -202,8 +237,8 @@ export default function Otp() {
     showLoader('Resending verification code...')
     try {
       const response = await generateOtp({
-        phoneNumber: phoneParam,
-        email: emailParam
+        phoneNumber: actionParam === 'unlock' ? unlockPhone : phoneParam,
+        email: actionParam === 'unlock' ? unlockEmail : emailParam
       })
       setOtpToken(response.token)
       startTimer()
@@ -259,7 +294,7 @@ export default function Otp() {
                     <div className="flex items-center justify-center gap-3 py-4">
                       <Smartphone className="h-5 w-5 text-indigo-400" />
                       <span className="text-xl font-bold tracking-wider text-white">
-                        {maskPhoneNumber(phoneParam)}
+                        {maskPhoneNumber(actionParam === 'unlock' ? unlockPhone : phoneParam)}
                       </span>
                     </div>
                   </div>
@@ -312,7 +347,7 @@ export default function Otp() {
                       We've sent a 6-digit verification code to
                     </p>
                     <p className="text-base font-bold text-white tracking-wider">
-                      {maskPhoneNumber(phoneParam)}
+                      {maskPhoneNumber(actionParam === 'unlock' ? unlockPhone : phoneParam)}
                     </p>
                   </div>
 
@@ -392,9 +427,13 @@ export default function Otp() {
                   <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 mb-2">
                     <CheckCircle2 className="h-10 w-10 animate-bounce" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Verification Successful</h3>
+                  <h3 className="text-xl font-bold text-white">
+                    {actionParam === 'unlock' ? 'Account Reactivated' : 'Verification Successful'}
+                  </h3>
                   <p className="text-sm text-slate-400">
-                    Your identity has been verified. Redirecting you to the application...
+                    {actionParam === 'unlock'
+                      ? 'Your account has been successfully unlocked. Redirecting you to login...'
+                      : 'Your identity has been verified. Redirecting you to the application...'}
                   </p>
                 </motion.div>
               )}
@@ -414,6 +453,32 @@ export default function Otp() {
                   <p className="text-sm text-slate-400">
                     Verification code has expired. Redirecting back...
                   </p>
+                </motion.div>
+              )}
+
+              {/* PHASE: INVALID LINK */}
+              {phase === 'invalid-link' && (
+                <motion.div
+                  key="invalid-link-phase"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="py-8 text-center space-y-4"
+                >
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-400 border border-red-500/25 mb-2">
+                    <AlertCircle className="h-10 w-10 animate-pulse" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Activation Link Invalid</h3>
+                  <p className="text-sm text-red-300 px-2 leading-relaxed">
+                    {error || 'Your activation link has expired or is invalid. Please contact the Driving School to reactivate your account.'}
+                  </p>
+                  <div className="pt-4">
+                    <Button
+                      onClick={() => navigate('/login')}
+                      className="w-full h-12 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all duration-300"
+                    >
+                      Back to Login
+                    </Button>
+                  </div>
                 </motion.div>
               )}
 

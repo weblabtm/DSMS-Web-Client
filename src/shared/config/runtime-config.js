@@ -85,6 +85,7 @@ export async function loadRuntimeConfig() {
         host: String(payload.host ?? window.location.host),
         hostname: String(payload.hostname ?? window.location.hostname),
         tenantSlug: toStringOrNull(payload.tenantSlug),
+        recaptchaSiteKey: payload.recaptchaSiteKey || '6LedABAtAAAAAOBhX3sS_v8h6g5e-eG4P-Z3t0oZ',
     }
 }
 

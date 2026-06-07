@@ -191,12 +191,25 @@ export async function generateOtp({ email, phoneNumber, captchaToken }) {
  * @param {{ otp: string; token?: string }} payload
  * @returns {Promise<{ message: string }>}
  */
-export async function validateOtp({ otp, token, mfaToken }) {
+export async function validateOtp({ otp, token, mfaToken, unlockToken }) {
   return request('/auth/otp/validate', {
     body: {
       otp,
       ...(token ? { token } : {}),
       ...(mfaToken ? { mfaToken } : {}),
+      ...(unlockToken ? { unlockToken } : {}),
     },
+  })
+}
+
+/**
+ * Fetch details for a locked account by token.
+ *
+ * @param {string} token
+ * @returns {Promise<{ email: string; phoneNumber: string }>}
+ */
+export async function getUnlockDetails(token) {
+  return request(`/auth/unlock/details?token=${encodeURIComponent(token)}`, {
+    method: 'GET',
   })
 }
