@@ -176,7 +176,7 @@ export default function Login() {
                 <div className="text-right">
                   <button
                     type="button"
-                    onClick={() => navigate('/resetPassword/request')}
+                    onClick={() => navigate('/resetPassword/request', { state: { email: identifier } })}
                     className="text-sm font-semibold text-slate-900 hover:text-slate-700 transition-colors"
                   >
                     Forgot password?

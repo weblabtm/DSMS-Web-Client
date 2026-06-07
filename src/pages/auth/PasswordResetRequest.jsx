@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react'
 import { Button } from '../../shared/ui/button.jsx'
@@ -7,7 +7,10 @@ import { buildBaseHostUrl } from '../../shared/config/runtime-config.js'
 
 export default function PasswordResetRequest() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const location = useLocation()
+  const prefillEmail = location.state?.email || ''
+  
+  const [email, setEmail] = useState(prefillEmail)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
