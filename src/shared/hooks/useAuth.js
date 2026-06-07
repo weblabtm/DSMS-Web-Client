@@ -61,6 +61,7 @@ export function useAuth() {
 
     // Actions
     login: store.login,
+    completeLogin: store.completeLogin,
     register: store.register,
     logout: store.logout,
     refreshToken: store.refreshToken,

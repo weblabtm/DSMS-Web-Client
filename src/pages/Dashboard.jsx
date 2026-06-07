@@ -12,9 +12,15 @@ import {
   Check,
   LogOut,
   ExternalLink,
-  Info
+  Info,
+  Smartphone,
+  Monitor,
+  Tablet,
+  Trash2,
+  RefreshCw,
 } from 'lucide-react'
 import { useAuth } from '../shared/hooks/useAuth'
+import { useAuthStore } from '../shared/store/authStore'
 import { Button } from '../shared/ui/button.jsx'
 import { buildTenantPath } from '../shared/config/runtime-config.js'
 
@@ -39,15 +45,54 @@ const getRoleColor = (role) => {
 
 export default function Dashboard() {
   const { user, currentRole, getInviteableRoles, logout } = useAuth()
+  const { getActiveSessions, revokeSession } = useAuthStore()
   const navigate = useNavigate()
   const inviteableRoles = getInviteableRoles()
   const canInvite = inviteableRoles.length > 0
+
+  // ── Active Sessions state ──
+  const [sessions, setSessions] = useState([])
+  const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [revokingId, setRevokingId] = useState(null)
+
+  const fetchSessions = async (showLoading = true) => {
+    if (showLoading) {
+      setSessionsLoading(true)
+    }
+    try {
+      const list = await getActiveSessions()
+      setSessions(list)
+    } catch (err) {
+      console.warn('Could not load sessions:', err.message)
+    } finally {
+      setSessionsLoading(false)
+    }
+  }
+
+  const handleRevoke = async (sessionId) => {
+    setRevokingId(sessionId)
+    try {
+      await revokeSession(sessionId)
+      setSessions((prev) => prev.filter((s) => s.sessionId !== sessionId))
+    } catch (err) {
+      console.warn('Could not revoke session:', err.message)
+    } finally {
+      setRevokingId(null)
+    }
+  }
 
   useEffect(() => {
     if (currentRole === 'Super Admin') {
       navigate('/super-admin/dashboard', { replace: true })
     }
   }, [currentRole, navigate])
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      fetchSessions(false)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // State for generator
   const [targetRole, setTargetRole] = useState(inviteableRoles[0] || '')
@@ -298,6 +343,75 @@ export default function Dashboard() {
                     Your current account role <span className="font-bold uppercase text-slate-400">({currentRole})</span> is not authorized to issue invitation links in this workspace cluster.
                   </p>
                 </div>
+              )}
+            </div>
+
+            {/* ── Active Sessions Panel ── */}
+            <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 backdrop-blur-xl shadow-2xl">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-indigo-400" /> Active Sessions
+                </h2>
+                <button
+                  onClick={fetchSessions}
+                  disabled={sessionsLoading}
+                  className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-900 transition-all disabled:opacity-40 cursor-pointer"
+                  title="Refresh sessions"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${sessionsLoading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+
+              {sessionsLoading && sessions.length === 0 ? (
+                <div className="text-xs text-slate-500 text-center py-6">Loading sessions…</div>
+              ) : sessions.length === 0 ? (
+                <div className="text-xs text-slate-500 text-center py-6">No active sessions found.</div>
+              ) : (
+                <ul className="space-y-2">
+                  {sessions.map((s) => {
+                    const platform = s.devicePlatform || 'Desktop'
+                    const PlatformIcon = platform === 'Mobile' ? Smartphone : platform === 'Tablet' ? Tablet : Monitor
+                    const isCurrentSession = s.sessionId === user?.sessionId
+                    return (
+                      <li
+                        key={s.sessionId}
+                        className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-xs transition-all ${
+                          isCurrentSession
+                            ? 'border-indigo-800/50 bg-indigo-950/20'
+                            : 'border-slate-800/50 bg-slate-950/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <PlatformIcon className={`h-4 w-4 shrink-0 ${isCurrentSession ? 'text-indigo-400' : 'text-slate-500'}`} />
+                          <div>
+                            <div className="font-semibold text-slate-200">
+                              {s.deviceOs || 'Unknown OS'}
+                              {isCurrentSession && (
+                                <span className="ml-2 text-[9px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/60 border border-indigo-800/40 rounded px-1.5 py-0.5">
+                                  Current
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-slate-500 mt-0.5">
+                              {platform} · Signed in {new Date(s.createdAt * 1000).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+
+                        {!isCurrentSession && (
+                          <button
+                            onClick={() => handleRevoke(s.sessionId)}
+                            disabled={revokingId === s.sessionId}
+                            className="h-7 w-7 shrink-0 flex items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-500 hover:text-red-400 hover:border-red-900/50 hover:bg-red-950/20 transition-all disabled:opacity-40 cursor-pointer"
+                            title="Revoke this session"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
               )}
             </div>
 

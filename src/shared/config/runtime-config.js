@@ -10,7 +10,7 @@ const toStringOrNull = (value) => {
     return text.length > 0 ? text : null
 }
 
-const getGlobalRuntimeConfig = () => {
+export const getGlobalRuntimeConfig = () => {
     if (typeof window === 'undefined') {
         return null
     }
@@ -23,9 +23,10 @@ export const getRuntimeApiBaseUrl = () => {
 
     // In production, we must NEVER fall back to the web app origin.
     // If VITE_API_BASE_URL is not configured, fail fast so we don't POST to the frontend and get 405.
+    // NOTE: empty string '' is intentionally valid — it means "use relative paths" (Vite proxy mode / LAN dev).
     const baseUrl = globalConfig?.apiBaseUrl ?? import.meta.env.VITE_API_BASE_URL
 
-    if (!baseUrl) {
+    if (baseUrl === undefined || baseUrl === null) {
         throw new Error('Missing API base URL. Set VITE_API_BASE_URL (e.g. https://dsms-server.vercel.app)')
     }
 
@@ -63,12 +64,21 @@ export const createFallbackRuntimeConfig = () => ({
 })
 
 export async function loadRuntimeConfig() {
-    // Important: do not call relative `/config` here.
-    // If `/config` is served by the web app origin, it may return a web-origin apiBaseUrl
-    // which then causes POST `/auth/login` to hit the frontend (405).
-    const baseUrl = getRuntimeApiBaseUrl()
+    // In dev mode (Vite proxy active) OR when the page is accessed from a non-localhost origin
+    // (e.g. a LAN device via 192.168.x.x or 172.x.x.x), use a relative /config URL so the
+    // Vite proxy forwards it to the real backend — no absolute localhost URL, no CORS issues.
+    const isLanAccess = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    const isDev = import.meta.env.DEV;
 
-    const response = await fetch(`${baseUrl}${API_ENDPOINTS.runtimeConfig}`, {
+    let configUrl;
+    if (isDev || isLanAccess) {
+        configUrl = API_ENDPOINTS.runtimeConfig; // relative: /config — handled by Vite proxy
+    } else {
+        const baseUrl = getRuntimeApiBaseUrl();
+        configUrl = `${baseUrl}${API_ENDPOINTS.runtimeConfig}`;
+    }
+
+    const response = await fetch(configUrl, {
         headers: {
             Accept: 'application/json',
         },
@@ -80,11 +90,24 @@ export async function loadRuntimeConfig() {
 
     const payload = await response.json()
 
+    // If the backend returned a localhost apiBaseUrl but we're being accessed from a different
+    // host (LAN IP), replace it with '' so all subsequent API calls use relative paths through
+    // the Vite proxy. This makes LAN dev access work without any env file changes.
+    let resolvedApiBaseUrl = String(payload.apiBaseUrl ?? getRuntimeApiBaseUrl())
+    if (isLanAccess) {
+        const isLocalhost = resolvedApiBaseUrl.includes('localhost') || resolvedApiBaseUrl.includes('127.0.0.1')
+        if (isLocalhost) {
+            resolvedApiBaseUrl = '' // use relative paths → Vite proxy handles routing to backend
+        }
+    }
+
     return {
-        apiBaseUrl: String(payload.apiBaseUrl ?? baseUrl),
+        apiBaseUrl: resolvedApiBaseUrl,
         host: String(payload.host ?? window.location.host),
         hostname: String(payload.hostname ?? window.location.hostname),
         tenantSlug: toStringOrNull(payload.tenantSlug),
+        recaptchaSiteKey: payload.recaptchaSiteKey || '0x4AAAAAADgL0IjHaom1GpZW',
+        captchaSiteKey: payload.captchaSiteKey || '0x4AAAAAADgL0IjHaom1GpZW',
     }
 }
 
