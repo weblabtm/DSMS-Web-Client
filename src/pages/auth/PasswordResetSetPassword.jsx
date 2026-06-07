@@ -66,7 +66,7 @@ export default function PasswordResetSetPassword() {
       } else {
         setError(data.message || 'Failed to reset password. Please try again.')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please check your connection and try again.')
     } finally {
       setIsLoading(false)

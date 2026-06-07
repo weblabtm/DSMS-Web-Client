@@ -55,7 +55,7 @@ export default function PasswordResetVerify() {
       } else {
         setError(data.message || 'Invalid verification code. Please try again.')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please check your connection and try again.')
     } finally {
       setIsLoading(false)

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react'
@@ -43,7 +43,7 @@ export default function PasswordResetRequest() {
       } else {
         setError(data.message || 'Failed to send reset code. Please try again.')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please check your connection and try again.')
     } finally {
       setIsLoading(false)
