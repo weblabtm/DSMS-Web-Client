@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import * as authApi from '../api/authApi'
 import { buildBaseHostUrl } from '../config/runtime-config'
+import { getDeviceInfo } from '../utils/deviceInfo'
 
 const STORAGE_KEY = 'dsms_session'
 
@@ -65,12 +66,20 @@ export const useAuthStore = create((set, get) => ({
   },
 
   /**
-   * Log in with identifier and password
+   * Log in with identifier and password.
+   * Device info is collected silently and attached to the request.
    */
   login: async ({ identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken }) => {
     set({ isLoading: true, error: null })
     try {
-      const session = await authApi.login({ identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken })
+      // Collect device metadata without blocking on failures
+      let deviceInfo = {}
+      try { deviceInfo = await getDeviceInfo() } catch { /* non-fatal */ }
+
+      const session = await authApi.login({
+        identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken,
+        ...deviceInfo,
+      })
 
       get().setSession(session)
       return session
@@ -169,5 +178,28 @@ export const useAuthStore = create((set, get) => ({
       }
     }
     // ✦ No window.location.replace here — React Router guards redirect to /login
+  },
+
+  /**
+   * Fetch all active sessions for the authenticated user.
+   * @returns {Promise<Array>}
+   */
+  getActiveSessions: async () => {
+    const { user } = get()
+    const accessToken = user?.accessToken
+    if (!accessToken) throw new Error('Not authenticated')
+    const data = await authApi.getActiveSessions(accessToken)
+    return data?.sessions ?? []
+  },
+
+  /**
+   * Revoke a specific session by ID.
+   * @param {string} sessionId
+   */
+  revokeSession: async (sessionId) => {
+    const { user } = get()
+    const accessToken = user?.accessToken
+    if (!accessToken) throw new Error('Not authenticated')
+    await authApi.revokeSession(sessionId, accessToken)
   },
 }))

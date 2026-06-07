@@ -76,7 +76,7 @@ async function request(path, { method = 'POST', body, token } = {}) {
  * @param {{ identifier: string; password: string; tenantId?: string; branchId?: string }} credentials
  * @returns {Promise<import('./authTypes').AuthSessionResponse>}
  */
-export async function login({ identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken }) {
+export async function login({ identifier, password, tenantId, branchId, rememberMe, mfaToken, captchaToken, deviceFingerprint, deviceOs, devicePlatform }) {
   return request('/auth/login', {
     body: {
       identifier,
@@ -86,6 +86,9 @@ export async function login({ identifier, password, tenantId, branchId, remember
       ...(rememberMe !== undefined ? { rememberMe } : {}),
       ...(mfaToken ? { mfaToken } : {}),
       ...(captchaToken ? { captchaToken } : {}),
+      ...(deviceFingerprint ? { deviceFingerprint } : {}),
+      ...(deviceOs ? { deviceOs } : {}),
+      ...(devicePlatform ? { devicePlatform } : {}),
     },
   })
 }
@@ -237,5 +240,32 @@ export async function validateCaptcha(captchaToken) {
 export async function completeLogin() {
   return request('/auth/login/complete', {
     body: {}
+  })
+}
+
+/**
+ * Fetch all active sessions for the currently authenticated user.
+ *
+ * @param {string} accessToken  Bearer token
+ * @returns {Promise<{ sessions: Array<{ sessionId: string; deviceOs?: string; devicePlatform?: string; deviceFingerprint?: string; createdAt: number; expiresAt: number; rememberMe: boolean }> }>}
+ */
+export async function getActiveSessions(accessToken) {
+  return request('/auth/sessions', {
+    method: 'GET',
+    token: accessToken,
+  })
+}
+
+/**
+ * Revoke (delete) a specific session by ID.
+ *
+ * @param {string} sessionId
+ * @param {string} accessToken  Bearer token of the currently authenticated user
+ * @returns {Promise<null>}
+ */
+export async function revokeSession(sessionId, accessToken) {
+  return request(`/auth/sessions/${encodeURIComponent(sessionId)}`, {
+    method: 'DELETE',
+    token: accessToken,
   })
 }
