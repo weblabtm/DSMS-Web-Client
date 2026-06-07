@@ -65,7 +65,7 @@ export default function Login() {
 
     const role = session?.roles?.[0] || currentRole
     if (role === 'Super Admin') return '/super-admin/dashboard'
-    return session?.tenantId ? buildTenantPath(session.tenantId, '/dashboard') : '/dashboard'
+    return '/resolve-user'
   }, [currentRole])
 
   // ─── Already authenticated redirect ─────────────────────────────────────────

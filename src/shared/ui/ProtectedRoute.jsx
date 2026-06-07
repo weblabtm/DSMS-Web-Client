@@ -4,9 +4,11 @@ import { ShieldAlert, ArrowLeft, LogOut } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { Button } from './button'
 import { buildBaseHostUrl, buildTenantPath } from '../config/runtime-config'
+import { useTenantStore } from '../store/tenantStore'
 
-export function ProtectedRoute({ children, allowedRoles }) {
+export function ProtectedRoute({ children, allowedRoles, bypassResolutionCheck = false }) {
   const { isAuthenticated, isInitialized, user, logout } = useAuth()
+  const isResolved = useTenantStore((state) => state.isResolved)
 
   // 1. Wait for store initialization (localStorage check + background refresh)
   if (!isInitialized) {
@@ -29,6 +31,12 @@ export function ProtectedRoute({ children, allowedRoles }) {
   if (!isAuthenticated || !user) {
     const nextUrl = window.location.pathname + window.location.search
     return <Navigate to={`/login?next=${encodeURIComponent(nextUrl)}`} replace />
+  }
+
+  // 2.5. Enforce tenant resolution for non-Super Admin users
+  const isSuperAdmin = user.roles?.includes('Super Admin')
+  if (!isSuperAdmin && !isResolved && !bypassResolutionCheck) {
+    return <Navigate to="/resolve-user" replace />
   }
 
 

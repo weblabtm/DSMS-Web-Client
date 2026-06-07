@@ -14,6 +14,13 @@ import Challenge from './pages/auth/Challenge.jsx'
 import TenantDashboard from './pages/dashboard/TenantDashboard.jsx'
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard.jsx'
 
+// Resolution Pages
+import UserTypeResolution from './pages/resolution/UserTypeResolution.jsx'
+import TenantResolution from './pages/resolution/TenantResolution.jsx'
+import RoleRouting from './pages/resolution/RoleRouting.jsx'
+import TenantError from './pages/resolution/TenantError.jsx'
+import { useTenantStore } from './shared/store/tenantStore'
+
 // UI Guards
 import ProtectedRoute from './shared/ui/ProtectedRoute.jsx'
 import GlobalLoader from './shared/ui/GlobalLoader.jsx'
@@ -21,6 +28,7 @@ import GlobalLoader from './shared/ui/GlobalLoader.jsx'
 function PublicRoute({ children }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const currentUser = useAuthStore((state) => state.user)
+  const isResolved = useTenantStore((state) => state.isResolved)
   const currentRole = currentUser?.roles?.[0] ?? null
 
   // If Login is handling an MFA callback it must run completeLogin() first —
@@ -32,9 +40,15 @@ function PublicRoute({ children }) {
     if (currentRole === 'Super Admin') {
       return <Navigate to="/super-admin/dashboard" replace />
     }
-    const currentTenantSlug = currentUser?.tenantId?.trim()
-    const target = currentTenantSlug ? buildTenantPath(currentTenantSlug, '/dashboard') : '/dashboard'
-    return <Navigate to={target} replace />
+    // If tenant status has been verified/resolved, go to dashboard.
+    // Otherwise, force resolution checking.
+    if (isResolved) {
+      const currentTenantSlug = currentUser?.tenantId?.trim()
+      const target = currentTenantSlug ? buildTenantPath(currentTenantSlug, '/dashboard') : '/dashboard'
+      return <Navigate to={target} replace />
+    } else {
+      return <Navigate to="/resolve-user" replace />
+    }
   }
 
   return children
@@ -126,6 +140,33 @@ function App() {
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/otp" element={<PublicRoute><Otp /></PublicRoute>} />
         <Route path="/challenge" element={<PublicRoute><Challenge /></PublicRoute>} />
+
+        {/* Resolution Flow Routes */}
+        <Route
+          path="/resolve-user"
+          element={
+            <ProtectedRoute bypassResolutionCheck={true}>
+              <UserTypeResolution />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/:tenantSlug/resolve-tenant"
+          element={
+            <ProtectedRoute bypassResolutionCheck={true}>
+              <TenantResolution />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/:tenantSlug/role-routing"
+          element={
+            <ProtectedRoute bypassResolutionCheck={true}>
+              <RoleRouting />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/tenant-error" element={<TenantError />} />
 
         {/* Tenant Dashboard Route */}
         <Route
