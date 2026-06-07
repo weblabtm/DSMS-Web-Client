@@ -38,12 +38,14 @@ export async function requestJson(path, options = {}) {
     const savedSession = localStorage.getItem('dsms_session')
     let accessToken = null
     let refreshToken = null
+    let tenantId = null
 
     if (savedSession) {
         try {
             const parsed = JSON.parse(savedSession)
             accessToken = parsed?.accessToken
             refreshToken = parsed?.refreshToken
+            tenantId = parsed?.tenantId
         } catch {
             // ignore
         }
@@ -57,6 +59,10 @@ export async function requestJson(path, options = {}) {
 
     if (accessToken && !headers['Authorization'] && !headers['authorization']) {
         headers['Authorization'] = `Bearer ${accessToken}`
+    }
+
+    if (tenantId && !headers['x-tenant-id'] && !headers['X-Tenant-ID']) {
+        headers['x-tenant-id'] = tenantId
     }
 
     const requestOptions = {

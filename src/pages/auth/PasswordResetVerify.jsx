@@ -36,7 +36,7 @@ export default function PasswordResetVerify() {
     setError('')
 
     try {
-      const response = await fetch('http://localhost:3000/auth/otp/validate', {
+      const response = await fetch('/auth/otp/validate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

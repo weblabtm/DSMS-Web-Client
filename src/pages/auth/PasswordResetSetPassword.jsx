@@ -43,7 +43,7 @@ export default function PasswordResetSetPassword() {
 
     try {
       // This endpoint needs to be created in backend
-      const response = await fetch('http://localhost:3000/auth/password-reset', {
+      const response = await fetch('/auth/password-reset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

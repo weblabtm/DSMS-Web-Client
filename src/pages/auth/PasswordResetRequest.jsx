@@ -24,7 +24,7 @@ export default function PasswordResetRequest() {
 
     try {
       // Call OTP generate endpoint
-      const response = await fetch('http://localhost:3000/auth/otp/generate', {
+      const response = await fetch('/auth/otp/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
