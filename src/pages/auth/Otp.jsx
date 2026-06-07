@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Shield, Smartphone, Key, AlertCircle, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react'
 import { Button } from '../../shared/ui/button.jsx'
 import { generateOtp, validateOtp, getUnlockDetails } from '../../shared/api/authApi.js'
+import { getDeviceInfo } from '../../shared/utils/deviceInfo.js'
 import { useUiStore } from '../../shared/store/uiStore'
 
 // Mask phone number: e.g. +94712345678 -> +94xxxxxxx678 or +94xxxxx678
@@ -34,6 +35,12 @@ export default function Otp() {
   const callbackUrl = searchParams.get('callbackUrl') || '/'
   const actionParam = searchParams.get('action') || ''
   const tokenParam = searchParams.get('token') || ''
+
+  // Device info — gathered once on mount for token binding
+  const [deviceInfo, setDeviceInfo] = useState({ deviceFingerprint: '', deviceOs: '', devicePlatform: '' })
+  useEffect(() => {
+    getDeviceInfo().then(setDeviceInfo).catch(() => {})
+  }, [])
 
   // Page phases: 'request' | 'verify' | 'success' | 'expired' | 'invalid-link'
   const [phase, setPhase] = useState('request')
@@ -69,6 +76,14 @@ export default function Otp() {
       loadDetails()
     }
   }, [actionParam, tokenParam, showLoader, hideLoader])
+
+  // Auto-submit on mount/update when captchaToken is present (ensuring deviceInfo is loaded first to prevent fingerprint mismatch)
+  useEffect(() => {
+    const token = searchParams.get('captchaToken')
+    if (token && phase === 'request' && !isLoading && !otpToken && deviceInfo.deviceFingerprint) {
+      handleRequestOtp(token)
+    }
+  }, [searchParams, phase, isLoading, otpToken, deviceInfo])
   
   // OTP Verification Code (6 digits)
   const [code, setCode] = useState(['', '', '', '', '', ''])
@@ -134,8 +149,8 @@ export default function Otp() {
     }
   }
 
-  // Step 1: Request OTP
-  const handleRequestOtp = async () => {
+  const handleRequestOtp = async (tokenOverride) => {
+    const activeCaptchaToken = (typeof tokenOverride === 'string' ? tokenOverride : '') || searchParams.get('captchaToken') || ''
     setIsLoading(true)
     setError(null)
     showLoader('Requesting verification code...')
@@ -144,13 +159,22 @@ export default function Otp() {
         phoneNumber: displayPhone,
         email: displayEmail,
         mfaToken: mfaTokenParam || undefined,
-        unlockToken: actionParam === 'unlock' ? tokenParam : undefined
+        unlockToken: actionParam === 'unlock' ? tokenParam : undefined,
+        captchaToken: activeCaptchaToken || undefined,
+        ...deviceInfo,
       })
       setOtpToken(response.token)
       setPhase('verify')
       startTimer()
     } catch (err) {
-      setError(err.message || 'Failed to request OTP code. Please try again.')
+      if (err.message?.toLowerCase().includes('captcha')) {
+        const newParams = new URLSearchParams(searchParams)
+        newParams.delete('captchaToken')
+        const otpCallbackUrl = `/otp?${newParams.toString()}`
+        navigate(`/challenge?callbackUrl=${encodeURIComponent(otpCallbackUrl)}`, { replace: true })
+      } else {
+        setError(err.message || 'Failed to request OTP code. Please try again.')
+      }
     } finally {
       setIsLoading(false)
       hideLoader()
@@ -175,7 +199,8 @@ export default function Otp() {
         otp: otpCode,
         token: otpToken,
         mfaToken: mfaTokenParam,
-        unlockToken: actionParam === 'unlock' ? tokenParam : undefined
+        unlockToken: actionParam === 'unlock' ? tokenParam : undefined,
+        ...deviceInfo,
       })
 
       if (actionParam === 'unlock') {
@@ -244,6 +269,7 @@ export default function Otp() {
 
   // Resend OTP logic
   const handleResendOtp = async () => {
+    const activeCaptchaToken = searchParams.get('captchaToken') || ''
     setIsLoading(true)
     setError(null)
     showLoader('Resending verification code...')
@@ -252,7 +278,9 @@ export default function Otp() {
         phoneNumber: displayPhone,
         email: displayEmail,
         mfaToken: mfaTokenParam || undefined,
-        unlockToken: actionParam === 'unlock' ? tokenParam : undefined
+        unlockToken: actionParam === 'unlock' ? tokenParam : undefined,
+        captchaToken: activeCaptchaToken || undefined,
+        ...deviceInfo,
       })
       setOtpToken(response.token)
       startTimer()
@@ -260,7 +288,14 @@ export default function Otp() {
       if (inputRefs[0].current) inputRefs[0].current.focus()
       setError(null)
     } catch (err) {
-      setError(err.message || 'Failed to resend OTP code. Please try again.')
+      if (err.message?.toLowerCase().includes('captcha')) {
+        const newParams = new URLSearchParams(searchParams)
+        newParams.delete('captchaToken')
+        const otpCallbackUrl = `/otp?${newParams.toString()}`
+        navigate(`/challenge?callbackUrl=${encodeURIComponent(otpCallbackUrl)}`, { replace: true })
+      } else {
+        setError(err.message || 'Failed to resend OTP code. Please try again.')
+      }
     } finally {
       setIsLoading(false)
       hideLoader()
@@ -330,7 +365,7 @@ export default function Otp() {
                   )}
 
                   <Button
-                    onClick={handleRequestOtp}
+                    onClick={() => handleRequestOtp()}
                     disabled={isLoading}
                     className="w-full h-12 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
                   >

@@ -176,10 +176,10 @@ export async function checkTenantSlugAvailability(slug) {
 /**
  * Generate a new OTP code.
  *
- * @param {{ email?: string; phoneNumber?: string; captchaToken?: string }} payload
+ * @param {{ email?: string; phoneNumber?: string; captchaToken?: string; deviceFingerprint?: string; deviceOs?: string; devicePlatform?: string }} payload
  * @returns {Promise<{ message: string; token: string }>}
  */
-export async function generateOtp({ email, phoneNumber, captchaToken, mfaToken, unlockToken }) {
+export async function generateOtp({ email, phoneNumber, captchaToken, mfaToken, unlockToken, deviceFingerprint, deviceOs, devicePlatform }) {
   return request('/auth/otp/generate', {
     body: {
       ...(email ? { email } : {}),
@@ -187,6 +187,9 @@ export async function generateOtp({ email, phoneNumber, captchaToken, mfaToken, 
       ...(captchaToken ? { captchaToken } : {}),
       ...(mfaToken ? { mfaToken } : {}),
       ...(unlockToken ? { unlockToken } : {}),
+      ...(deviceFingerprint ? { deviceFingerprint } : {}),
+      ...(deviceOs ? { deviceOs } : {}),
+      ...(devicePlatform ? { devicePlatform } : {}),
     },
   })
 }
@@ -194,16 +197,19 @@ export async function generateOtp({ email, phoneNumber, captchaToken, mfaToken, 
 /**
  * Validate an OTP code.
  *
- * @param {{ otp: string; token?: string }} payload
+ * @param {{ otp: string; token?: string; deviceFingerprint?: string; deviceOs?: string; devicePlatform?: string }} payload
  * @returns {Promise<{ message: string }>}
  */
-export async function validateOtp({ otp, token, mfaToken, unlockToken }) {
+export async function validateOtp({ otp, token, mfaToken, unlockToken, deviceFingerprint, deviceOs, devicePlatform }) {
   return request('/auth/otp/validate', {
     body: {
       otp,
       ...(token ? { token } : {}),
       ...(mfaToken ? { mfaToken } : {}),
       ...(unlockToken ? { unlockToken } : {}),
+      ...(deviceFingerprint ? { deviceFingerprint } : {}),
+      ...(deviceOs ? { deviceOs } : {}),
+      ...(devicePlatform ? { devicePlatform } : {}),
     },
   })
 }
@@ -224,11 +230,17 @@ export async function getUnlockDetails(token) {
  * Validate a CAPTCHA token and set the captcha_verified_token cookie.
  *
  * @param {string} captchaToken
+ * @param {{ deviceFingerprint?: string; deviceOs?: string; devicePlatform?: string }} [deviceInfo]
  * @returns {Promise<{ message: string; token: string }>}
  */
-export async function validateCaptcha(captchaToken) {
+export async function validateCaptcha(captchaToken, { deviceFingerprint, deviceOs, devicePlatform } = {}) {
   return request('/auth/captcha/validate', {
-    body: { captchaToken }
+    body: {
+      captchaToken,
+      ...(deviceFingerprint ? { deviceFingerprint } : {}),
+      ...(deviceOs ? { deviceOs } : {}),
+      ...(devicePlatform ? { devicePlatform } : {}),
+    }
   })
 }
 

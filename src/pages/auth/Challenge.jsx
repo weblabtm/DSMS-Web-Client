@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Shield, AlertCircle, RefreshCw } from 'lucide-react'
 import { getGlobalRuntimeConfig } from '../../shared/config/runtime-config.js'
 import { validateCaptcha } from '../../shared/api/authApi.js'
+import { getDeviceInfo } from '../../shared/utils/deviceInfo.js'
 
 export default function Challenge() {
   const navigate = useNavigate()
@@ -11,14 +12,21 @@ export default function Challenge() {
 
   // Redirect back to callbackUrl with captchaDone param.
   // Use React Router navigate for relative URLs to preserve SPA navigation.
-  const handleRedirect = useCallback((success) => {
+  const handleRedirect = useCallback((success, captchaToken = '') => {
     if (callbackUrl.startsWith('http://') || callbackUrl.startsWith('https://')) {
       const url = new URL(callbackUrl)
       url.searchParams.set('captchaDone', String(success))
+      if (captchaToken) {
+        url.searchParams.set('captchaToken', captchaToken)
+      }
       window.location.replace(url.toString())
     } else {
       const separator = callbackUrl.includes('?') ? '&' : '?'
-      navigate(`${callbackUrl}${separator}captchaDone=${success}`, { replace: true })
+      let target = `${callbackUrl}${separator}captchaDone=${success}`
+      if (captchaToken) {
+        target += `&captchaToken=${encodeURIComponent(captchaToken)}`
+      }
+      navigate(target, { replace: true })
     }
   }, [callbackUrl, navigate])
 
@@ -68,11 +76,13 @@ export default function Challenge() {
               setIsLoading(true)
               setError(null)
               try {
-                // Validate with server → sets captcha_verified_token cookie
-                await validateCaptcha(token)
+                // Gather device info for token binding
+                const deviceInfo = await getDeviceInfo().catch(() => ({}))
+                // Validate with server → sets captcha_verified_token cookie bound to this device
+                const response = await validateCaptcha(token, deviceInfo)
 
-                 // Return control to Login page — Login page will re-submit credentials
-                 handleRedirect(true)
+                 // Return control to redirect target, passing the token
+                 handleRedirect(true, response?.token)
               } catch (err) {
                 setError(err.message || 'Failed to complete security challenge. Please try again.')
                 isRendered.current = false
