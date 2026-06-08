@@ -17,7 +17,6 @@ import PasswordResetSetPassword from './pages/auth/PasswordResetSetPassword.jsx'
 import TenantDashboard from './pages/dashboard/TenantDashboard.jsx'
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard.jsx'
 import ManageDevices from './pages/settings/ManageDevices.jsx'
-import DemoDashboard from './pages/dashboard/DemoDashboard.jsx'
 
 // Resolution Pages
 import UserTypeResolution from './pages/resolution/UserTypeResolution.jsx'
@@ -207,8 +206,7 @@ function App() {
         {/* Settings Routes */}
         <Route path="/settings/devices" element={<ManageDevices />} />
 
-        {/* Demo Dashboard Route */}
-        <Route path="/demo" element={<DemoDashboard />} />
+
 
         {/* Catch-all Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
