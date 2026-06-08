@@ -2,10 +2,9 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Shield, Database, Layers3, Building2, Users, ArrowRight, LogOut,
-  CheckCircle, AlertCircle, Info, Lock, ChevronLeft, ChevronRight,
-  Search, Bell, ChevronDown, Monitor, Smartphone, Tablet, Key,
-  Settings, User, Plus, X, Copy, Check, ExternalLink, Trash2,
-  HelpCircle, MessageCircle, RefreshCw, Zap
+  CheckCircle, AlertCircle, Lock, ChevronLeft, ChevronRight,
+  Search, Bell, ChevronDown, Monitor, Smartphone, Tablet,
+  Settings, User, Plus, X, MessageCircle, RefreshCw
 } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { useAuthStore } from '../../shared/store/authStore'
@@ -79,16 +78,7 @@ function Button({ variant = 'primary', size = 'md', icon, children, onClick, dis
   );
 }
 
-function IconButton({ icon, onClick, variant = "ghost", size = "md", title }) {
-  const sizes = { sm: "w-7 h-7", md: "w-9 h-9", lg: "w-11 h-11" };
-  return (
-    <button title={title} onClick={onClick}
-      className={`${sizes[size]} flex items-center justify-center rounded-xl transition-all cursor-pointer
-        ${variant === "ghost" ? "text-gray-500 hover:bg-gray-100" : "bg-[#1a472a] text-white hover:bg-[#2d6a4f]"}`}>
-      {icon}
-    </button>
-  );
-}
+
 
 function StatCard({ label, value, trendLabel, icon: Icon, hero, badge }) {
   return (
@@ -188,21 +178,25 @@ function DonutChart({ segments, size = 100, thickness = 14 }) {
   const r = (size - thickness) / 2;
   const cx = size / 2, cy = size / 2;
   const circumference = 2 * Math.PI * r;
-  let offset = 0;
+
+  const segmentsWithOffsets = segments.map((seg, idx) => {
+    const dash = (seg.value / total) * circumference;
+    const prevDashesSum = segments.slice(0, idx).reduce((sum, s) => {
+      const prevDash = (s.value / total) * circumference;
+      return sum + prevDash;
+    }, 0);
+    return { ...seg, dash, offset: prevDashesSum };
+  });
+
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-      {segments.map((seg, i) => {
-        const dash = (seg.value / total) * circumference;
-        const el = (
-          <circle key={i} cx={cx} cy={cy} r={r}
-            fill="none" stroke={seg.color} strokeWidth={thickness}
-            strokeDasharray={`${dash} ${circumference}`}
-            strokeDashoffset={-offset} strokeLinecap="round"
-          />
-        );
-        offset += dash;
-        return el;
-      })}
+      {segmentsWithOffsets.map((seg, i) => (
+        <circle key={i} cx={cx} cy={cy} r={r}
+          fill="none" stroke={seg.color} strokeWidth={thickness}
+          strokeDasharray={`${seg.dash} ${circumference}`}
+          strokeDashoffset={-seg.offset} strokeLinecap="round"
+        />
+      ))}
     </svg>
   );
 }
@@ -552,7 +546,9 @@ export default function SuperAdminDashboard() {
 
   // Load active sessions on start
   useEffect(() => {
-    fetchSessions(false)
+    Promise.resolve().then(() => {
+      fetchSessions(false)
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
