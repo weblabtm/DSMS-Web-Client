@@ -194,34 +194,39 @@ function App() {
   // page reload (because isAuthenticated starts as false before localStorage is read).
   if (!isInitialized) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-slate-950 text-slate-100 overflow-hidden">
-        {/* Ambient glow — decorative only */}
+      <div className="relative flex min-h-screen items-center justify-center bg-[#041208] overflow-hidden select-none font-['Plus_Jakarta_Sans',_sans-serif]">
+        {/* Ambient background glow blobs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] -translate-x-1/2 -translate-y-1/2 bg-indigo-600/15 rounded-full blur-[120px]" />
-          <div className="absolute top-1/3 left-1/4 w-[250px] h-[250px] bg-blue-600/10 rounded-full blur-[100px]" />
+          <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] -translate-x-1/2 -translate-y-1/2 bg-[#52b788]/20 rounded-full blur-[120px]" />
+          <div className="absolute top-1/3 left-1/4 w-[250px] h-[250px] bg-[#1a472a]/15 rounded-full blur-[100px]" />
         </div>
 
         <div className="relative z-10 flex flex-col items-center gap-6 p-6 text-center max-w-sm">
+          {/* Animated Custom Ring Spinner */}
           <div className="relative flex items-center justify-center">
+            {/* Inner pulsing core */}
             <motion.div
               animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.6, 1, 0.6] }}
               transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-              className="absolute h-6 w-6 rounded-full bg-gradient-to-tr from-indigo-500 to-blue-500 shadow-lg shadow-indigo-500/50"
+              className="absolute h-6 w-6 rounded-full bg-gradient-to-tr from-[#1a472a] to-[#52b788] shadow-lg shadow-[#52b788]/50"
             />
+            {/* Middle rotating ring */}
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-              className="h-16 w-16 rounded-full border-4 border-slate-900 border-t-indigo-500 border-r-blue-400 shadow-md shadow-indigo-500/10"
+              className="h-16 w-16 rounded-full border-4 border-white/5 border-t-[#52b788] border-r-[#d8f3dc] shadow-md shadow-[#52b788]/10"
             />
-            <div className="absolute h-20 w-20 rounded-full border-2 border-indigo-500/5 animate-pulse" />
+            {/* Outer glowing halo */}
+            <div className="absolute h-20 w-20 rounded-full border-2 border-[#52b788]/5 animate-pulse" />
           </div>
 
+          {/* Message */}
           <div className="space-y-2">
-            <h3 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            <h3 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-[#d8f3dc] to-[#52b788] bg-clip-text text-transparent">
               Please Wait
             </h3>
-            <p className="text-sm font-medium leading-relaxed text-slate-400 tracking-wide animate-pulse">
-              Deploying control nodes...
+            <p className="text-sm font-medium leading-relaxed text-[#d8f3dc]/80 tracking-wide animate-pulse">
+              Initializing application...
             </p>
           </div>
         </div>

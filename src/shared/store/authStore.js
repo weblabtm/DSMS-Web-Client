@@ -70,6 +70,7 @@
 import { create } from 'zustand'
 import * as authApi from '../api/authApi'
 import { getDeviceInfo } from '../utils/deviceInfo'
+import { useUiStore } from './uiStore'
 
 /** localStorage key for the persisted session. Change here only — used in http-client.js too. */
 const STORAGE_KEY = 'dsms_session'
@@ -301,7 +302,14 @@ export const useAuthStore = create((set, get) => ({
     const { user } = get()
     const refreshToken = user?.refreshToken
 
-    // Step 1 & 2: Immediate local cleanup
+    // Step 1: Trigger global loader
+    try {
+      useUiStore.getState().showLoader('Signing out, please wait...')
+    } catch (e) {
+      console.warn('Failed to trigger global loader during logout:', e)
+    }
+
+    // Step 2 & 3: Immediate local cleanup
     localStorage.removeItem(STORAGE_KEY)
     set({
       user: null,
@@ -309,8 +317,7 @@ export const useAuthStore = create((set, get) => ({
       error: null,
     })
 
-    // Step 3: Background server call — fire and forget.
-    // We do not await this because the user is already logged out locally.
+    // Step 4: Background server call — fire and forget.
     if (refreshToken) {
       try {
         await authApi.logout(refreshToken)
@@ -318,6 +325,16 @@ export const useAuthStore = create((set, get) => ({
         // Non-fatal: local session is already cleared. Log and continue.
         console.warn('Logout endpoint call failed:', err)
       }
+    }
+
+    // Wait 800ms to allow a premium feeling exit transition
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    // Step 5: Hide global loader
+    try {
+      useUiStore.getState().hideLoader()
+    } catch (e) {
+      console.warn('Failed to clear global loader during logout:', e)
     }
     // ✦ No window.location here — React Router guards handle the redirect
   },
