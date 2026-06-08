@@ -50,7 +50,7 @@ import { buildTenantPath } from './shared/config/runtime-config.js'
 // ── Page imports ──────────────────────────────────────────────────────────────
 import Landing from './pages/Landing.jsx'
 import Login from './pages/auth/Login.jsx'
-import Register from './pages/Register.jsx'
+import Register from './pages/auth/Register.jsx'
 import Otp from './pages/auth/Otp.jsx'
 import Challenge from './pages/auth/Challenge.jsx'
 import PasswordResetRequest from './pages/auth/PasswordResetRequest.jsx'
