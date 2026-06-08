@@ -42,7 +42,8 @@ import {
   Users,
   Edit2,
   Filter,
-  Download
+  Download,
+  HelpCircle
 } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { useAuthStore } from '../../shared/store/authStore'
@@ -83,10 +84,21 @@ function PageFade({ children, pageKey }) {
 
 function DonezoLogo() {
   return (
-    <svg width="32" height="32" viewBox="0 0 32 32">
-      <circle cx="16" cy="16" r="15" fill="#1a472a" />
-      <circle cx="16" cy="16" r="9" fill="none" stroke="#52b788" strokeWidth="2.5" />
-      <circle cx="16" cy="16" r="4" fill="#52b788" />
+    <svg className="w-8 h-8 flex-shrink-0" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28Z"
+        stroke="#1a472a"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 14C10 11.5 12 11.5 13.5 13.5C15 15.5 16 15.5 16 15.5C16 15.5 17 15.5 18.5 13.5C20 11.5 22 11.5 22 14C22 18.5 16 22 16 22C16 22 10 18.5 10 14Z"
+        stroke="#1a472a"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -308,11 +320,11 @@ function NotificationPopover({ notifications, onMarkAllRead, onMarkRead }) {
   return (
     <div ref={ref} className="relative">
       <button onClick={() => setOpen(p => !p)}
-        className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+        className="relative w-10 h-10 flex items-center justify-center rounded-2xl bg-white border border-gray-200/50 shadow-sm text-gray-500 hover:text-gray-700 transition-all hover:bg-gray-50 cursor-pointer"
       >
         <Bell size={18} />
         {unread > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#1a472a] text-white text-[9px] font-bold flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#1a472a] text-white text-[9px] font-bold flex items-center justify-center border-2 border-white shadow-sm">
             {unread}
           </span>
         )}
@@ -1316,14 +1328,12 @@ export default function TenantDashboard() {
     { icon: CheckSquare, label: 'Tasks', badge: String(tasks.filter(t => !t.done).length), id: 'tasks' },
     { icon: Calendar, label: 'Calendar', id: 'calendar' },
     { icon: BarChart2, label: 'Analytics', id: 'analytics' },
-    { icon: Users, label: 'Team', id: 'team' },
-    { icon: Shield, label: 'Active Sessions', id: 'sessions' },
-    { icon: UserPlus, label: 'Invite Generator', id: 'invite' }
+    { icon: Users, label: 'Teams', id: 'team' }
   ]
 
   const GENERAL_ITEMS = [
     { icon: Settings, label: 'Settings', id: 'settings' },
-    { icon: User, label: 'Profile', id: 'profile' },
+    { icon: HelpCircle, label: 'Help', id: 'help' },
     { icon: LogOut, label: 'Logout', id: 'logout' }
   ]
 
@@ -1380,12 +1390,12 @@ export default function TenantDashboard() {
   ]
 
   return (
-    <div className="flex h-screen bg-[#f4f6f4] font-['DM_Sans'] overflow-hidden text-gray-800">
+    <div className="flex h-screen bg-[#f4f6f4] overflow-hidden text-gray-800 p-5 gap-5">
       {/* Toast Overlay notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {/* COLLAPSIBLE SIDEBAR */}
-      <aside className={`relative flex flex-col bg-white border-r border-gray-100 transition-all duration-300 ease-in-out z-30 ${sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'}`}>
+      <aside className={`relative flex flex-col bg-white rounded-[24px] shadow-sm border border-gray-200/50 transition-all duration-300 ease-in-out z-30 h-full ${sidebarCollapsed ? 'w-[72px]' : 'w-[260px]'}`}>
         <button
           onClick={() => setSidebarCollapsed(p => !p)}
           className="absolute -right-3 top-6 z-10 w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors cursor-pointer"
@@ -1394,20 +1404,20 @@ export default function TenantDashboard() {
         </button>
 
         {/* Brand logo */}
-        <div className={`flex items-center gap-3 px-4 py-5 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+        <div className={`flex items-center gap-3 px-6 py-5 ${sidebarCollapsed ? 'justify-center px-4' : ''}`}>
           <DonezoLogo />
           {!sidebarCollapsed && (
-            <span className="font-bold text-lg text-gray-900 tracking-tight">
-              DSMS<span className="text-[#52b788] text-xs font-semibold uppercase tracking-wider ml-1">SaaS</span>
+            <span className="font-bold text-xl text-gray-900 tracking-tight">
+              Donezo
             </span>
           )}
         </div>
 
         {/* Navigation block */}
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-0 space-y-1 overflow-y-auto">
           {!sidebarCollapsed && (
-            <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              Control Centre
+            <p className="px-6 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              MENU
             </p>
           )}
           {NAV_ITEMS.map(item => {
@@ -1418,17 +1428,19 @@ export default function TenantDashboard() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 title={sidebarCollapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer
-                  ${sidebarCollapsed ? 'justify-center' : ''}
+                className={`w-full flex items-center gap-3 pl-6 pr-4 py-2.5 text-sm font-semibold transition-all cursor-pointer relative
+                  ${sidebarCollapsed ? 'justify-center px-3 pl-3' : ''}
                   ${active
-                    ? 'bg-[#1a472a] text-white shadow-md shadow-[#1a472a]/15'
-                    : 'text-gray-500 hover:bg-[#d8f3dc] hover:text-[#1a472a]'}`}
+                    ? 'text-gray-900 font-bold'
+                    : 'text-gray-400 hover:text-gray-900'}`}
               >
-                <Icon size={18} className="flex-shrink-0" />
+                {active && (
+                  <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#1a472a] rounded-r-md" />
+                )}
+                <Icon size={18} className={`flex-shrink-0 ${active ? 'text-[#1a472a]' : ''}`} />
                 {!sidebarCollapsed && <span className="flex-1 text-left">{item.label}</span>}
                 {!sidebarCollapsed && item.badge && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold
-                    ${active ? 'bg-white/20 text-white' : 'bg-[#1a472a] text-white'}`}>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-lg font-bold ml-auto bg-[#52b788] text-white`}>
                     {item.badge}
                   </span>
                 )}
@@ -1437,8 +1449,8 @@ export default function TenantDashboard() {
           })}
 
           {!sidebarCollapsed && (
-            <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              General
+            <p className="px-6 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              GENERAL
             </p>
           )}
           {sidebarCollapsed && <div className="my-3 border-t border-gray-100" />}
@@ -1456,56 +1468,68 @@ export default function TenantDashboard() {
                   }
                 }}
                 title={sidebarCollapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer
-                  ${sidebarCollapsed ? 'justify-center' : ''}
+                className={`w-full flex items-center gap-3 pl-6 pr-4 py-2.5 text-sm font-semibold transition-all cursor-pointer relative
+                  ${sidebarCollapsed ? 'justify-center px-3 pl-3' : ''}
                   ${active
-                    ? 'bg-[#1a472a] text-white shadow-md shadow-[#1a472a]/15'
-                    : 'text-gray-500 hover:bg-[#d8f3dc] hover:text-[#1a472a]'}`}
+                    ? 'text-gray-900 font-bold'
+                    : 'text-gray-400 hover:text-gray-900'}`}
               >
-                <Icon size={18} className="flex-shrink-0" />
+                {active && (
+                  <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#1a472a] rounded-r-md" />
+                )}
+                <Icon size={18} className={`flex-shrink-0 ${active ? 'text-[#1a472a]' : ''}`} />
                 {!sidebarCollapsed && <span className="flex-1 text-left">{item.label}</span>}
               </button>
             )
           })}
         </nav>
 
-        {/* Pro Tip Card */}
+        {/* Download Mobile App Card */}
         {!sidebarCollapsed && (
-          <div className="m-3 p-4 rounded-2xl bg-[#1a472a] text-white shadow-inner">
-            <p className="text-[10px] text-white/70 font-semibold uppercase tracking-wider mb-1">Documentation</p>
-            <p className="font-bold text-sm mb-1 leading-snug">Developer Skill Guides</p>
-            <p className="text-xs text-white/60 mb-3 leading-relaxed">Check our layout structures inside SKILL.md.</p>
-            <a
-              href="file:///Users/ravindupiyumal/Projects%20(WebLABtm)/Project%20DSMS/DSMS-Web-Client/skills/SKILL.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center py-2 rounded-xl bg-[#52b788] text-white text-xs font-bold hover:bg-[#3da06e] transition-colors text-center"
+          <div className="mx-4 mb-4 mt-auto p-4 rounded-[20px] bg-gradient-to-br from-[#081c15] to-[#1b4332] text-white relative overflow-hidden shadow-lg border border-white/5">
+            <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-[#52b788]/10 rounded-full blur-xl pointer-events-none" />
+            <div className="absolute -left-6 -top-6 w-20 h-20 bg-[#52b788]/5 rounded-full blur-xl pointer-events-none" />
+            
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white mb-3">
+              <Smartphone size={16} />
+            </div>
+            
+            <h4 className="font-bold text-sm text-white leading-snug mb-1">
+              Download our Mobile App
+            </h4>
+            <p className="text-[11px] text-white/60 leading-relaxed mb-4">
+              Get a support certified app
+            </p>
+            
+            <button
+              onClick={() => addToast('info', 'Download initiated', 'Downloading DSMS Mobile Client...')}
+              className="w-full py-2 rounded-xl bg-[#52b788] hover:bg-[#409c70] text-white text-xs font-bold transition-all hover:scale-[1.02] cursor-pointer shadow-sm text-center"
             >
-              Open SKILL.md
-            </a>
+              Download
+            </button>
           </div>
         )}
       </aside>
 
       {/* MAIN CONTAINER */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden h-full">
         {/* TOPBAR */}
-        <header className="flex items-center gap-4 px-6 py-3 bg-white border-b border-gray-100 z-20 shrink-0">
+        <header className="flex items-center justify-between gap-4 pb-4 bg-transparent z-20 shrink-0">
           <div className="flex-1 max-w-md">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#f4f6f4] border border-gray-100">
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white border border-gray-200/50 shadow-sm">
               <Search size={15} className="text-gray-400 flex-shrink-0" />
               <input
                 placeholder="Search cluster variables..."
                 className="flex-1 bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none"
                 disabled
               />
-              <kbd className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white border border-gray-200 text-[10px] text-gray-400 font-mono select-none">
+              <kbd className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-200 text-[10px] text-gray-400 font-mono select-none">
                 ⌘K
               </kbd>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-3 ml-auto">
             {/* Notifications Popover */}
             <NotificationPopover
               notifications={notifications}
@@ -1513,16 +1537,14 @@ export default function TenantDashboard() {
               onMarkRead={markNotificationRead}
             />
 
-            <button className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+            <button className="relative w-10 h-10 flex items-center justify-center rounded-2xl bg-white border border-gray-200/50 shadow-sm text-gray-500 hover:text-gray-700 transition-all hover:bg-gray-50 cursor-pointer">
               <MessageCircle size={18} />
             </button>
-
-            <div className="w-px h-6 bg-gray-100 mx-1" />
 
             {/* Profile User Dropdown */}
             <Dropdown
               trigger={
-                <button className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-xl hover:bg-gray-50 transition-colors text-left cursor-pointer">
+                <button className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-white border border-gray-200/50 shadow-sm hover:bg-gray-50 transition-all text-left cursor-pointer">
                   <Avatar name={displayName} size="sm" online />
                   <div className="hidden md:block">
                     <p className="text-sm font-semibold text-gray-800 leading-none">{displayName}</p>
@@ -2121,6 +2143,33 @@ export default function TenantDashboard() {
                               />
                     </div>
                   </Card>
+                </div>
+              )}
+
+              {activeTab === 'help' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <PageHeader
+                    title="Help Center & FAQs"
+                    subtitle="Frequently asked questions, system user guides, and contact support details."
+                  />
+                  <div className="max-w-3xl space-y-4">
+                    <Card title="Frequently Asked Questions">
+                      <div className="space-y-4 text-sm text-gray-600 leading-relaxed">
+                        <div>
+                          <h4 className="font-bold text-gray-900 mb-1">How do I verify driving schedules?</h4>
+                          <p>Go to the Calendar tab in the control centre. Select the roster session card to verify or schedule instructor-student pairings.</p>
+                        </div>
+                        <div className="pt-3 border-t border-gray-100">
+                          <h4 className="font-bold text-gray-900 mb-1">How can I issue a registration invite token?</h4>
+                          <p>Click the "Generate Invite" button at the top of the dashboard or use the "Invite Generator" card on the home tab to select a candidate role and copy the cryptographically bound URL.</p>
+                        </div>
+                        <div className="pt-3 border-t border-gray-100">
+                          <h4 className="font-bold text-gray-900 mb-1">How do session revokes work?</h4>
+                          <p>Active session nodes are tracked under the Active Sessions panel. Click the trash icon next to a session to terminate it immediately. Your self-session cannot be terminated.</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
                 </div>
               )}
 
