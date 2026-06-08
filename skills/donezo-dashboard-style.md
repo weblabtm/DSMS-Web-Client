@@ -49,8 +49,8 @@ theme: { extend: { colors: {
 ### Font
 ```jsx
 // Add to document head or index.html
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-// Apply globally: className="font-['DM_Sans']" on root, or set in tailwind base
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;850;900&display=swap" rel="stylesheet">
+// Apply globally: font-family: 'Plus Jakarta Sans', 'Inter', sans-serif on body
 ```
 
 ---
@@ -96,7 +96,7 @@ function AppShell({ children }) {
   useEffect(() => { if (bp !== "mobile") setDrawerOpen(false); }, [bp]);
 
   return (
-    <div className="flex h-screen bg-[#f4f6f4] font-['DM_Sans'] overflow-hidden">
+    <div className="flex h-screen bg-[#f4f6f4] overflow-hidden p-5 gap-5">
       {/* Inline sidebar — tablet & desktop only */}
       {showSidebar && (
         <Sidebar
@@ -116,7 +116,7 @@ function AppShell({ children }) {
             onClick={() => setDrawerOpen(false)}
           />
           {/* Drawer panel */}
-          <div className={`fixed inset-y-0 left-0 z-50 w-[260px] bg-white shadow-2xl
+          <div className={`fixed inset-y-0 left-0 z-50 w-[260px] bg-white shadow-2xl rounded-r-3xl
                            transition-transform duration-300 ease-in-out
                            ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}>
             <Sidebar collapsed={false} showToggle={false} />
@@ -124,9 +124,9 @@ function AppShell({ children }) {
         </>
       )}
 
-      <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+      <div className="flex flex-col flex-1 overflow-hidden min-w-0 h-full">
         <TopBar onMenuClick={() => setDrawerOpen(p => !p)} showMenuBtn={bp === "mobile"} />
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+        <main className="flex-1 overflow-y-auto space-y-4 md:space-y-6">
           {children}
         </main>
       </div>
@@ -156,7 +156,7 @@ const GENERAL_ITEMS = [
 function Sidebar({ collapsed, onToggle, showToggle = true, activeId, onNavigate }) {
   return (
     <aside className={`
-      relative flex flex-col h-full bg-white border-r border-gray-100 transition-all duration-300 ease-in-out
+      relative flex flex-col h-full bg-white rounded-[24px] shadow-sm border border-gray-200/50 transition-all duration-300 ease-in-out
       ${collapsed ? "w-[72px]" : "w-[260px]"}
     `}>
       {/* Toggle button — desktop only */}
@@ -171,19 +171,19 @@ function Sidebar({ collapsed, onToggle, showToggle = true, activeId, onNavigate 
       )}
 
       {/* Logo */}
-      <div className={`flex items-center gap-3 px-4 py-5 ${collapsed ? "justify-center" : ""}`}>
+      <div className={`flex items-center gap-3 px-6 py-5 ${collapsed ? "justify-center px-4" : ""}`}>
         <DonezoLogo />
-        {!collapsed && <span className="font-bold text-lg text-gray-900">Donezo</span>}
+        {!collapsed && <span className="font-bold text-xl text-gray-900 tracking-tight">Donezo</span>}
       </div>
 
       {/* Nav sections */}
-      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
-        {!collapsed && <SidebarLabel>Menu</SidebarLabel>}
+      <nav className="flex-1 px-0 space-y-1 overflow-y-auto">
+        {!collapsed && <SidebarLabel>MENU</SidebarLabel>}
         {NAV_ITEMS.map(item => (
           <NavItem key={item.id} item={item} collapsed={collapsed}
             active={activeId === item.id} onClick={() => onNavigate?.(item.id)} />
         ))}
-        {!collapsed && <SidebarLabel className="mt-4">General</SidebarLabel>}
+        {!collapsed && <SidebarLabel className="mt-4">GENERAL</SidebarLabel>}
         {collapsed && <div className="my-3 border-t border-gray-100" />}
         {GENERAL_ITEMS.map(item => (
           <NavItem key={item.id} item={item} collapsed={collapsed}
@@ -193,12 +193,22 @@ function Sidebar({ collapsed, onToggle, showToggle = true, activeId, onNavigate 
 
       {/* Bottom promo card — hidden when collapsed */}
       {!collapsed && (
-        <div className="m-3 p-4 rounded-2xl bg-[#1a472a] text-white">
-          <p className="text-xs text-white/60 mb-1">Pro tip</p>
-          <p className="font-bold text-sm mb-1">Download our Mobile App</p>
-          <p className="text-xs text-white/60 mb-3">Get easy in another way</p>
-          <button className="w-full py-2 rounded-xl bg-[#52b788] text-white text-sm font-semibold
-                             hover:bg-[#3da06e] transition-colors">
+        <div className="mx-4 mb-4 mt-auto p-4 rounded-[20px] bg-gradient-to-br from-[#081c15] to-[#1b4332] text-white relative overflow-hidden shadow-lg border border-white/5">
+          <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-[#52b788]/10 rounded-full blur-xl pointer-events-none" />
+          <div className="absolute -left-6 -top-6 w-20 h-20 bg-[#52b788]/5 rounded-full blur-xl pointer-events-none" />
+          
+          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white mb-3">
+            <Smartphone size={16} />
+          </div>
+          
+          <h4 className="font-bold text-sm text-white leading-snug mb-1">
+            Download our Mobile App
+          </h4>
+          <p className="text-[11px] text-white/60 leading-relaxed mb-4">
+            Get a support certified app
+          </p>
+          
+          <button className="w-full py-2 rounded-xl bg-[#52b788] hover:bg-[#409c70] text-white text-xs font-bold transition-all hover:scale-[1.02] cursor-pointer shadow-sm text-center">
             Download
           </button>
         </div>
@@ -214,19 +224,21 @@ function NavItem({ item, collapsed, active, onClick }) {
       onClick={onClick}
       title={collapsed ? item.label : undefined}
       className={`
-        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
-        ${collapsed ? "justify-center" : ""}
+        w-full flex items-center gap-3 pl-6 pr-4 py-2.5 text-sm font-semibold transition-all cursor-pointer relative
+        ${collapsed ? "justify-center px-3 pl-3" : ""}
         ${active
-          ? "bg-[#1a472a] text-white"
-          : "text-gray-500 hover:bg-[#d8f3dc] hover:text-[#1a472a]"
+          ? "text-gray-900 font-bold"
+          : "text-gray-400 hover:text-gray-900"
         }
       `}
     >
-      <Icon size={18} className="flex-shrink-0" />
+      {active && (
+        <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#1a472a] rounded-r-md" />
+      )}
+      <Icon size={18} className={`flex-shrink-0 ${active ? "text-[#1a472a]" : ""}`} />
       {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
       {!collapsed && item.badge && (
-        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold
-          ${active ? "bg-white/20 text-white" : "bg-[#1a472a] text-white"}`}>
+        <span className="text-[10px] px-1.5 py-0.5 rounded-lg font-bold ml-auto bg-[#52b788] text-white">
           {item.badge}
         </span>
       )}
@@ -236,7 +248,7 @@ function NavItem({ item, collapsed, active, onClick }) {
 
 function SidebarLabel({ children, className = "" }) {
   return (
-    <p className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400 ${className}`}>
+    <p className={`px-6 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400 ${className}`}>
       {children}
     </p>
   );
@@ -244,10 +256,21 @@ function SidebarLabel({ children, className = "" }) {
 
 function DonezoLogo() {
   return (
-    <svg width="32" height="32" viewBox="0 0 32 32">
-      <circle cx="16" cy="16" r="15" fill="#1a472a"/>
-      <circle cx="16" cy="16" r="9" fill="none" stroke="#52b788" strokeWidth="2.5"/>
-      <circle cx="16" cy="16" r="4" fill="#52b788"/>
+    <svg className="w-8 h-8 flex-shrink-0" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28Z"
+        stroke="#1a472a"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 14C10 11.5 12 11.5 13.5 13.5C15 15.5 16 15.5 16 15.5C16 15.5 17 15.5 18.5 13.5C20 11.5 22 11.5 22 14C22 18.5 16 22 16 22C16 22 10 18.5 10 14Z"
+        stroke="#1a472a"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -261,18 +284,18 @@ function DonezoLogo() {
 function TopBar({ onSearch, onMenuClick, showMenuBtn = false }) {
   const [query, setQuery] = useState("");
   return (
-    <header className="flex items-center gap-2 sm:gap-4 px-3 sm:px-6 py-3 bg-white border-b border-gray-100">
+    <header className="flex items-center justify-between gap-4 pb-4 bg-transparent z-20 shrink-0">
       {/* Mobile hamburger */}
       {showMenuBtn && (
         <button onClick={onMenuClick}
-          className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 flex-shrink-0">
+          className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white border border-gray-200/50 shadow-sm text-gray-500 hover:text-gray-700 transition-all hover:bg-gray-50 flex-shrink-0 cursor-pointer">
           <Menu size={20} />
         </button>
       )}
 
       {/* Search */}
       <div className="flex-1 max-w-xs sm:max-w-md">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#f4f6f4] border border-gray-100">
+        <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white border border-gray-200/50 shadow-sm">
           <Search size={15} className="text-gray-400 flex-shrink-0" />
           <input
             value={query}
@@ -280,24 +303,22 @@ function TopBar({ onSearch, onMenuClick, showMenuBtn = false }) {
             placeholder="Search task..."
             className="flex-1 bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none min-w-0"
           />
-          <kbd className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white
+          <kbd className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gray-50
                           border border-gray-200 text-[10px] text-gray-400 font-mono flex-shrink-0">
             ⌘F
           </kbd>
         </div>
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-2 ml-auto">
+      <div className="flex items-center gap-3 ml-auto">
         <TopBarIconBtn icon={<Bell size={18} />} badge={3} />
         {/* Hide mail icon on very small screens */}
         <span className="hidden sm:block">
           <TopBarIconBtn icon={<Mail size={18} />} />
         </span>
 
-        <div className="w-px h-6 bg-gray-100 mx-1 hidden sm:block" />
-
         {/* User — name+email hidden on mobile, avatar always shown */}
-        <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 py-1 rounded-xl hover:bg-gray-50 transition-colors">
+        <button className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-white border border-gray-200/50 shadow-sm hover:bg-gray-50 transition-all text-left cursor-pointer">
           <Avatar name="Totok Michael" size="sm" />
           <div className="hidden md:block text-left">
             <p className="text-sm font-semibold text-gray-800 leading-none">Totok Michael</p>
@@ -312,12 +333,12 @@ function TopBar({ onSearch, onMenuClick, showMenuBtn = false }) {
 
 function TopBarIconBtn({ icon, badge }) {
   return (
-    <button className="relative w-9 h-9 flex items-center justify-center rounded-xl 
-                       text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+    <button className="relative w-10 h-10 flex items-center justify-center rounded-2xl bg-white 
+                       border border-gray-200/50 shadow-sm text-gray-500 hover:text-gray-700 transition-all hover:bg-gray-50 cursor-pointer">
       {icon}
       {badge && (
-        <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-red-500 
-                         text-white text-[9px] font-bold flex items-center justify-center">
+        <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-red-500 
+                         text-white text-[9px] font-bold flex items-center justify-center border-2 border-white shadow-sm">
           {badge}
         </span>
       )}

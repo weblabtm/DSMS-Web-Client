@@ -1,87 +1,156 @@
-import { Link, Navigate } from 'react-router-dom'
-import { ShieldAlert, ArrowLeft, LogOut } from 'lucide-react'
+/**
+ * @file ProtectedRoute.jsx
+ * @layer MIDDLEWARE — Auth + Authorization enforcement.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  ██████╗  █████╗ ███╗   ██╗ ██████╗ ███████╗██████╗
+ *  ██╔══██╗██╔══██╗████╗  ██║██╔════╝ ██╔════╝██╔══██╗
+ *  ██║  ██║███████║██╔██╗ ██║██║  ███╗█████╗  ██████╔╝
+ *  ██║  ██║██╔══██║██║╚██╗██║██║   ██║██╔══╝  ██╔══██╗
+ *  ██████╔╝██║  ██║██║ ╚████║╚██████╔╝███████╗██║  ██║
+ *  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
+ *  RULE: This file is the SINGLE enforcement point for all
+ *  protected routes. Do NOT move auth/role logic into page
+ *  components. Change auth behavior HERE and only here.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * PURPOSE
+ * -------
+ * Wrap any <Route> element with <ProtectedRoute> to enforce:
+ *  1. Session initialization (wait for localStorage + token refresh to complete)
+ *  2. Authentication  (must be logged in)
+ *  3. Tenant resolution (tenant must be verified as active — skipped for Super Admin)
+ *  4. Role authorization (optional — only routes that pass allowedRoles)
+ *
+ * USAGE
+ * -----
+ * Basic (any authenticated user):
+ *   <ProtectedRoute>
+ *     <SomePage />
+ *   </ProtectedRoute>
+ *
+ * Role-restricted (only Tenant Admin or Branch Manager):
+ *   <ProtectedRoute allowedRoles={['Tenant Admin', 'Branch Manager']}>
+ *     <AdminPage />
+ *   </ProtectedRoute>
+ *
+ * Resolution pages (skip tenant resolution check so the pipeline can run):
+ *   <ProtectedRoute bypassResolutionCheck={true}>
+ *     <TenantResolution />
+ *   </ProtectedRoute>
+ *
+ * ╔══════════════════════════════════════════════════════════════════════════╗
+ * ║  AGENT / DEVELOPER RULES                                                ║
+ * ║                                                                         ║
+ * ║  ✅ DO:                                                                 ║
+ * ║    • Add new guard steps as numbered comments (Step 5, Step 6…)        ║
+ * ║    • Update the UI screens by editing SessionLoadingScreen.jsx or      ║
+ * ║      AccessDeniedScreen.jsx — NOT this file.                           ║
+ * ║    • Add new allowedRoles checks to route declarations in App.jsx.     ║
+ * ║                                                                         ║
+ * ║  ❌ DO NOT:                                                             ║
+ * ║    • Inline role or auth logic inside page/UI component files.         ║
+ * ║    • Bypass this wrapper by reading authStore directly in a page.      ║
+ * ║    • Add window.location.replace() here — use React Router <Navigate>. ║
+ * ║    • Remove the isInitialized check — it prevents auth race conditions.║
+ * ╚══════════════════════════════════════════════════════════════════════════╝
+ *
+ * @param {object}    props
+ * @param {ReactNode} props.children              The page/component to render if all checks pass
+ * @param {string[]}  [props.allowedRoles]        Whitelist of role strings; omit = any role allowed
+ * @param {boolean}   [props.bypassResolutionCheck=false]
+ *                                                Skip Step 2.5 tenant-resolution check.
+ *                                                ONLY used by the three resolution pages
+ *                                                (/resolve-user, /:slug/resolve-tenant, /:slug/role-routing)
+ *                                                so they can run BEFORE tenant is verified.
+ */
+
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { Button } from './button'
 import { buildTenantPath } from '../config/runtime-config'
 import { useTenantStore } from '../store/tenantStore'
 
+// Pure UI screens — edit those files to change visuals, not this file
+import { SessionLoadingScreen } from './SessionLoadingScreen'
+import { AccessDeniedScreen } from './AccessDeniedScreen'
+
 export function ProtectedRoute({ children, allowedRoles, bypassResolutionCheck = false }) {
   const { isAuthenticated, isInitialized, user, logout } = useAuth()
+
+  // Read tenant resolution state from the tenant store.
+  // isResolved becomes true only after TenantResolution.jsx has successfully
+  // fetched the tenant from the server and confirmed it is active.
   const isResolved = useTenantStore((state) => state.isResolved)
 
-  // 1. Wait for store initialization (localStorage check + background refresh)
+  // ─────────────────────────────────────────────────────────────────────────
+  // STEP 1 — Wait for store initialization
+  // ─────────────────────────────────────────────────────────────────────────
+  // authStore.initStore() is called once in App.jsx on mount. It reads the
+  // saved session from localStorage and attempts a background token refresh.
+  // Until that completes (isInitialized = true), we cannot trust isAuthenticated
+  // because it may not have been set yet. Rendering the spinner here prevents
+  // a flash-redirect to /login on page reload.
   if (!isInitialized) {
-    return (
-      <div className="relative flex min-h-screen items-center justify-center bg-slate-950 text-slate-100 overflow-hidden">
-        {/* Glow blobs */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] -translate-x-1/2 -translate-y-1/2 bg-indigo-600/10 rounded-full blur-[100px]" />
-        </div>
-
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent shadow-lg shadow-indigo-500/20" />
-          <p className="text-sm font-semibold tracking-wide text-slate-400">Verifying session...</p>
-        </div>
-      </div>
-    )
+    return <SessionLoadingScreen />
   }
 
-  // 2. Redirect to /login if unauthenticated — use React Router Navigate (no hard reload)
+  // ─────────────────────────────────────────────────────────────────────────
+  // STEP 2 — Authentication check
+  // ─────────────────────────────────────────────────────────────────────────
+  // If the user is not logged in (or the token refresh in Step 1 failed and
+  // triggered logout()), redirect them to /login and preserve the intended
+  // destination in the ?next= query param so Login.jsx can redirect back.
   if (!isAuthenticated || !user) {
     const nextUrl = window.location.pathname + window.location.search
     return <Navigate to={`/login?next=${encodeURIComponent(nextUrl)}`} replace />
   }
 
-  // 2.5. Enforce tenant resolution for non-Super Admin users
+  // ─────────────────────────────────────────────────────────────────────────
+  // STEP 2.5 — Tenant resolution check
+  // ─────────────────────────────────────────────────────────────────────────
+  // Non-Super Admin users must go through the resolution pipeline
+  // (UserTypeResolution → TenantResolution → RoleRouting) before accessing
+  // any protected page. This ensures the tenant is verified as active on
+  // every login session, not just once.
+  //
+  // bypassResolutionCheck = true is set ONLY on the three resolution routes
+  // themselves so they can execute before isResolved becomes true.
+  // Super Admins skip this entirely — they have no tenant.
   const isSuperAdmin = user.roles?.includes('Super Admin')
   if (!isSuperAdmin && !isResolved && !bypassResolutionCheck) {
     return <Navigate to="/resolve-user" replace />
   }
 
-
-  // 3. Role verification (if roles are restricted)
+  // ─────────────────────────────────────────────────────────────────────────
+  // STEP 3 — Role authorization check
+  // ─────────────────────────────────────────────────────────────────────────
+  // If the route declares allowedRoles, the user must have at least one
+  // matching role. This is a client-side guard — the server enforces the
+  // same rules on every API call. Both layers must stay in sync.
+  //
+  // To add a new role-restricted route:
+  //   1. Add the role string to allowedRoles in App.jsx for that route.
+  //   2. Make sure the same role check exists on the server endpoint.
+  //   3. Do NOT add per-role conditions inside the page component itself.
   if (allowedRoles && allowedRoles.length > 0) {
     const userRoles = user.roles || []
     const hasPermission = userRoles.some(role => allowedRoles.includes(role))
 
     if (!hasPermission) {
       return (
-        <div className="relative flex min-h-screen items-center justify-center bg-slate-950 text-slate-100 px-4">
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute top-1/4 left-1/3 w-[400px] h-[400px] bg-red-500/5 rounded-full blur-[120px]" />
-          </div>
-
-          <div className="w-full max-w-md rounded-2xl border border-slate-900 bg-slate-900/40 p-8 text-center backdrop-blur-xl shadow-2xl shadow-red-950/10">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 shadow-lg shadow-red-500/10 border border-red-500/20">
-              <ShieldAlert className="h-7 w-7" />
-            </div>
-
-            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              Access Denied
-            </h1>
-
-            <p className="mt-3 text-sm leading-relaxed text-slate-400">
-              Your account role <span className="font-semibold text-slate-200">({userRoles.join(', ')})</span> does not have authorization to view this area. Please contact your system administrator.
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3">
-              <Button asChild variant="default" className="w-full">
-                <Link to={buildTenantPath(user?.tenantId, '/dashboard')} className="flex items-center justify-center gap-2">
-                  <ArrowLeft className="h-4 w-4" /> Go to Dashboard
-                </Link>
-              </Button>
-
-              <Button onClick={() => logout()} variant="outline" className="w-full border-red-900/30 text-red-400 hover:bg-red-950/20 hover:text-red-300">
-                <LogOut className="h-4 w-4 mr-2 inline" /> Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
+        <AccessDeniedScreen
+          userRoles={userRoles}
+          dashboardPath={buildTenantPath(user?.tenantId, '/dashboard')}
+          onLogout={logout}
+        />
       )
     }
   }
 
-  // 4. Authorized
+  // ─────────────────────────────────────────────────────────────────────────
+  // STEP 4 — All checks passed → render the protected page
+  // ─────────────────────────────────────────────────────────────────────────
   return children
 }
+
 export default ProtectedRoute
