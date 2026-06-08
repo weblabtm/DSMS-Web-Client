@@ -22,7 +22,7 @@ import {
 import { useAuth } from '../../shared/hooks/useAuth'
 import { Button } from '../../shared/ui/button.jsx'
 import { checkTenantSlugAvailability, createTenant, register as registerTenantAdmin } from '../../shared/api/authApi.js'
-import { buildTenantPath, buildBaseHostUrl } from '../../shared/config/runtime-config.js'
+import { buildTenantPath } from '../../shared/config/runtime-config.js'
 
 import signupIllustration from '../../assets/signup_illustration.png'
 

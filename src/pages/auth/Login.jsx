@@ -1,13 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Lock, Mail, AlertCircle, Sparkles, ShieldCheck, Server } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { Button } from '../../shared/ui/button.jsx'
 import { buildBaseHostUrl } from '../../shared/config/runtime-config.js'
 import { useUiStore } from '../../shared/store/uiStore'
-
-import signupIllustration from '../../assets/signup_illustration.png'
 
 /** sessionStorage key for credentials staged during CAPTCHA redirect */
 const PENDING_LOGIN_KEY = 'dsms_pending_login'
