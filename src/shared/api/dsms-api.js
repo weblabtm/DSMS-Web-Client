@@ -12,5 +12,10 @@ export const dsmsApi = {
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },
+<<<<<<< HEAD
     }),
+=======
+    } : {}),
+    getTenantBySlug: (slug) => requestJson(`/tenant/slug/${encodeURIComponent(slug)}`),
+>>>>>>> 0627ddde93c286604c0b3e7d4543341c134ce5a2
 }

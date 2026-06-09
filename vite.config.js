@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     plugins: [tailwindcss(), react()],
     server: {
       host: '0.0.0.0',
-      allowedHosts: ['lvh.me', '.lvh.me', 'localhost'],
+      allowedHosts: 'all',
       proxy: {
         '/config': backendTarget,
         '/health': backendTarget,

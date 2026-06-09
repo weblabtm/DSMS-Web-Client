@@ -5,10 +5,12 @@ on:
     branches:
       - dev
       - main
+      - local
   pull_request:
     branches:
       - dev
       - main
+      - local
 
 jobs:
   build:
