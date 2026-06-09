@@ -305,10 +305,11 @@ export default function Otp() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      {/* Background radial glow */}
+    <div className="relative flex min-h-screen flex-col bg-[#f4f6f4] text-gray-900 overflow-hidden font-sans">
+      {/* Background decorative elements */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 w-[450px] h-[450px] -translate-x-1/2 -translate-y-1/2 bg-indigo-600/10 rounded-full blur-[130px]" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#d8f3dc]/30 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#52b788]/20 rounded-full blur-[100px]" />
       </div>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
@@ -316,16 +317,19 @@ export default function Otp() {
           
           {/* Header */}
           <div className="mb-8 text-center">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-extrabold text-xl shadow-lg shadow-indigo-500/25 mb-4">
-              <Shield className="h-6 w-6" />
+            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1a472a] text-white font-extrabold text-xl shadow-lg shadow-[#1a472a]/20 mb-4">
+              <Shield className="h-7 w-7" />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
               Security Verification
             </h1>
+            <p className="text-sm text-gray-500 mt-2">
+              Complete the verification to continue
+            </p>
           </div>
 
           {/* Main Card */}
-          <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-8 backdrop-blur-xl shadow-2xl">
+          <div className="rounded-3xl border border-gray-200/50 bg-white p-8 shadow-xl">
             <AnimatePresence mode="wait">
 
               {/* PHASE 1: REQUEST OTP */}
@@ -339,20 +343,20 @@ export default function Otp() {
                   className="space-y-6"
                 >
                   <div className="text-center space-y-4">
-                    <p className="text-sm text-slate-400 leading-relaxed">
+                    <p className="text-sm text-gray-600 leading-relaxed">
                       To complete this verification request, a security code will be generated for your account details:
                     </p>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-3 text-left">
+                    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-left">
                       <div className="flex items-start justify-between gap-4 text-xs">
-                        <span className="text-slate-500 font-semibold uppercase tracking-wider">Email Address</span>
-                        <span className="text-slate-200 font-medium break-all text-right">
+                        <span className="text-gray-500 font-semibold uppercase tracking-wider">Email Address</span>
+                        <span className="text-gray-900 font-medium break-all text-right">
                           {displayEmail || '—'}
                         </span>
                       </div>
-                      <div className="h-px bg-slate-800/40" />
+                      <div className="h-px bg-gray-200" />
                       <div className="flex items-center justify-between gap-4 text-xs">
-                        <span className="text-slate-500 font-semibold uppercase tracking-wider">Phone Number</span>
-                        <span className="text-slate-200 font-medium text-right font-mono">
+                        <span className="text-gray-500 font-semibold uppercase tracking-wider">Phone Number</span>
+                        <span className="text-gray-900 font-medium text-right font-mono">
                           {maskPhoneNumber(displayPhone)}
                         </span>
                       </div>
@@ -360,8 +364,8 @@ export default function Otp() {
                   </div>
 
                   {error && (
-                    <div className="flex items-start gap-3 rounded-xl border border-red-500/25 bg-red-500/5 p-4 text-xs text-red-300">
-                      <AlertCircle className="h-5 w-5 shrink-0 text-red-400 mt-0.5" />
+                    <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
+                      <AlertCircle className="h-5 w-5 shrink-0 text-red-500 mt-0.5" />
                       <div>{error}</div>
                     </div>
                   )}
@@ -369,7 +373,7 @@ export default function Otp() {
                   <Button
                     onClick={() => handleRequestOtp()}
                     disabled={isLoading}
-                    className="w-full h-12 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                    className="w-full h-12 bg-[#1a472a] hover:bg-[#2d6a4f] text-white font-semibold rounded-2xl shadow-lg shadow-[#1a472a]/20 transition-all duration-300 flex items-center justify-center gap-2"
                   >
                     {isLoading ? (
                       <>
@@ -385,7 +389,7 @@ export default function Otp() {
 
                   <button
                     onClick={() => handleRedirect(false)}
-                    className="w-full text-center text-xs text-slate-500 hover:text-slate-400 transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full text-center text-xs text-gray-500 hover:text-gray-700 transition-colors flex items-center justify-center gap-1.5"
                   >
                     <ArrowLeft className="h-3 w-3" /> Cancel and Go Back
                   </button>
@@ -403,20 +407,20 @@ export default function Otp() {
                   className="space-y-6"
                 >
                   <div className="text-center space-y-4">
-                    <p className="text-sm text-slate-400 leading-relaxed">
+                    <p className="text-sm text-gray-600 leading-relaxed">
                       We've sent a 6-digit verification code to the registered details below:
                     </p>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-3 text-left">
+                    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-left">
                       <div className="flex items-start justify-between gap-4 text-xs">
-                        <span className="text-slate-500 font-semibold uppercase tracking-wider">Email Address</span>
-                        <span className="text-slate-200 font-medium break-all text-right">
+                        <span className="text-gray-500 font-semibold uppercase tracking-wider">Email Address</span>
+                        <span className="text-gray-900 font-medium break-all text-right">
                           {displayEmail || '—'}
                         </span>
                       </div>
-                      <div className="h-px bg-slate-800/40" />
+                      <div className="h-px bg-gray-200" />
                       <div className="flex items-center justify-between gap-4 text-xs">
-                        <span className="text-slate-500 font-semibold uppercase tracking-wider">Phone Number</span>
-                        <span className="text-slate-200 font-medium text-right font-mono">
+                        <span className="text-gray-500 font-semibold uppercase tracking-wider">Phone Number</span>
+                        <span className="text-gray-900 font-medium text-right font-mono">
                           {maskPhoneNumber(displayPhone)}
                         </span>
                       </div>
@@ -425,15 +429,15 @@ export default function Otp() {
 
                   {/* Timer display */}
                   <div className="flex flex-col items-center justify-center py-2">
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Code expires in</span>
-                    <span className={`text-2xl font-mono font-extrabold mt-1 tracking-wider ${timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-indigo-400'}`}>
+                    <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Code expires in</span>
+                    <span className={`text-2xl font-mono font-extrabold mt-1 tracking-wider ${timeLeft < 60 ? 'text-red-600 animate-pulse' : 'text-[#1a472a]'}`}>
                       {formatTime(timeLeft)}
                     </span>
                   </div>
 
                   {error && (
-                    <div className="flex items-start gap-3 rounded-xl border border-red-500/25 bg-red-500/5 p-4 text-xs text-red-300">
-                      <AlertCircle className="h-5 w-5 shrink-0 text-red-400 mt-0.5" />
+                    <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
+                      <AlertCircle className="h-5 w-5 shrink-0 text-red-500 mt-0.5" />
                       <div>{error}</div>
                     </div>
                   )}
@@ -453,7 +457,7 @@ export default function Otp() {
                           onChange={(e) => handleInputChange(idx, e.target.value)}
                           onKeyDown={(e) => handleKeyDown(idx, e)}
                           onPaste={idx === 0 ? handlePaste : undefined}
-                          className="w-12 h-14 rounded-xl border-2 border-slate-800 bg-slate-950 text-center text-xl font-extrabold text-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
+                          className="w-12 h-14 rounded-2xl border-2 border-gray-300 bg-white text-center text-xl font-extrabold text-gray-900 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all shadow-sm"
                         />
                       ))}
                     </div>
@@ -461,7 +465,7 @@ export default function Otp() {
                     <Button
                       type="submit"
                       disabled={isLoading || code.some(x => !x)}
-                      className="w-full h-12 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                      className="w-full h-12 bg-[#1a472a] hover:bg-[#2d6a4f] text-white font-semibold rounded-2xl shadow-lg shadow-[#1a472a]/20 transition-all duration-300 flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
                         <>
@@ -480,7 +484,7 @@ export default function Otp() {
                     <button
                       onClick={handleResendOtp}
                       disabled={isLoading}
-                      className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 disabled:opacity-50 transition-colors inline-flex items-center gap-1.5"
+                      className="text-xs font-semibold text-[#1a472a] hover:text-[#2d6a4f] disabled:opacity-50 transition-colors inline-flex items-center gap-1.5"
                     >
                       Didn't receive the code? Resend OTP
                     </button>
@@ -496,13 +500,13 @@ export default function Otp() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="py-8 text-center space-y-4"
                 >
-                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 mb-2">
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-[#d8f3dc] text-[#1a472a] border border-[#52b788]/30 mb-2">
                     <CheckCircle2 className="h-10 w-10 animate-bounce" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">
+                  <h3 className="text-xl font-bold text-gray-900">
                     {actionParam === 'unlock' ? 'Account Reactivated' : 'Verification Successful'}
                   </h3>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-gray-600">
                     {actionParam === 'unlock'
                       ? 'Your account has been successfully unlocked. Redirecting you to login...'
                       : 'Your identity has been verified. Redirecting you to the application...'}
@@ -518,11 +522,11 @@ export default function Otp() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="py-8 text-center space-y-4"
                 >
-                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-400 border border-red-500/25 mb-2">
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600 border border-red-200 mb-2">
                     <AlertCircle className="h-10 w-10 animate-pulse" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Verification Expired</h3>
-                  <p className="text-sm text-slate-400">
+                  <h3 className="text-xl font-bold text-gray-900">Verification Expired</h3>
+                  <p className="text-sm text-gray-600">
                     Verification code has expired. Redirecting back...
                   </p>
                 </motion.div>
@@ -536,17 +540,17 @@ export default function Otp() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="py-8 text-center space-y-4"
                 >
-                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-400 border border-red-500/25 mb-2">
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600 border border-red-200 mb-2">
                     <AlertCircle className="h-10 w-10 animate-pulse" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Activation Link Invalid</h3>
-                  <p className="text-sm text-red-300 px-2 leading-relaxed">
+                  <h3 className="text-xl font-bold text-gray-900">Activation Link Invalid</h3>
+                  <p className="text-sm text-red-700 px-2 leading-relaxed">
                     {error || 'Your activation link has expired or is invalid. Please contact the Driving School to reactivate your account.'}
                   </p>
                   <div className="pt-4">
                     <Button
                       onClick={() => navigate('/login')}
-                      className="w-full h-12 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all duration-300"
+                      className="w-full h-12 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-2xl transition-all duration-300"
                     >
                       Back to Login
                     </Button>
