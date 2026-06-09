@@ -212,24 +212,30 @@ export default function Login() {
   }
 
   return (
-    <div className="h-screen bg-white flex overflow-hidden">
+    <div className="h-screen bg-[#f4f6f4] flex overflow-hidden relative">
+      {/* Background decorative elements */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#d8f3dc]/40 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#52b788]/30 rounded-full blur-[120px]" />
+      </div>
+
       {/* Logo - Top Left Corner */}
       <div className="absolute top-6 left-6 z-20">
         <a href={buildBaseHostUrl('/')} className="inline-flex items-center gap-2">
           <motion.div
             whileHover={{ scale: 1.05 }}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 text-white font-extrabold text-base shadow-md"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#1a472a] text-white font-extrabold text-lg shadow-lg shadow-[#1a472a]/20"
           >
             D
           </motion.div>
-          <span className="text-lg font-bold tracking-tight text-slate-900">
-            DriveSchool<span className="text-slate-600 font-semibold">SaaS</span>
+          <span className="text-lg font-bold tracking-tight text-gray-900">
+            DriveSchool<span className="text-[#52b788] font-semibold">SaaS</span>
           </span>
         </a>
       </div>
 
       {/* Left Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -244,8 +250,8 @@ export default function Login() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-8 text-center"
           >
-            <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Welcome back!</h1>
-            <p className="text-slate-600 text-base leading-relaxed">Please enter your details to sign in to your account</p>
+            <h1 className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">Welcome back!</h1>
+            <p className="text-gray-600 text-base leading-relaxed">Please enter your details to sign in to your account</p>
           </motion.div>
 
           {/* Form */}
@@ -261,9 +267,9 @@ export default function Login() {
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
               >
-                <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+                <AlertCircle className="h-5 w-5 shrink-0 text-red-500 mt-0.5" />
                 <div className="leading-normal">
                   <span className="font-semibold">Sign in failed: </span>
                   {lockoutTimeLeft > 0
@@ -280,11 +286,11 @@ export default function Login() {
               transition={{ delay: 0.35 }}
               className="space-y-2"
             >
-              <label className="text-sm font-semibold text-slate-700 block">
+              <label className="text-sm font-semibold text-gray-700 block">
                 Email address
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-slate-600 transition-colors">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 group-focus-within:text-gray-600 transition-colors">
                   <Mail className="h-5 w-5" />
                 </div>
                 <input
@@ -293,7 +299,7 @@ export default function Login() {
                   placeholder="Enter your email"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full h-12 pl-12 pr-4 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all duration-300 shadow-sm hover:shadow-md hover:border-slate-300"
+                  className="w-full h-12 pl-12 pr-4 rounded-2xl border-2 border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:border-gray-300"
                 />
               </div>
             </motion.div>
@@ -305,11 +311,11 @@ export default function Login() {
               transition={{ delay: 0.4 }}
               className="space-y-2"
             >
-              <label className="text-sm font-semibold text-slate-700 block">
+              <label className="text-sm font-semibold text-gray-700 block">
                 Password
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-slate-600 transition-colors">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 group-focus-within:text-gray-600 transition-colors">
                   <Lock className="h-5 w-5" />
                 </div>
                 <input
@@ -318,12 +324,12 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 pl-12 pr-12 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all duration-300 shadow-sm hover:shadow-md hover:border-slate-300"
+                  className="w-full h-12 pl-12 pr-12 rounded-2xl border-2 border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:border-gray-300"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer group-focus-within:text-slate-600"
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer group-focus-within:text-gray-600"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -332,7 +338,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => navigate('/resetPassword/request', { state: { email: identifier } })}
-                  className="text-sm font-semibold text-slate-900 hover:text-slate-700 transition-colors"
+                  className="text-sm font-semibold text-gray-900 hover:text-gray-700 transition-colors"
                 >
                   Forgot password?
                 </button>
@@ -351,9 +357,9 @@ export default function Login() {
                 id="remember"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                className="h-4 w-4 rounded border-gray-300 text-[#1a472a] focus:ring-[#1a472a]"
               />
-              <label htmlFor="remember" className="ml-2 text-xs text-slate-600">
+              <label htmlFor="remember" className="ml-2 text-xs text-gray-600">
                 Remember me
               </label>
             </motion.div>
@@ -367,7 +373,7 @@ export default function Login() {
               <Button
                 type="submit"
                 disabled={isLoading || !identifier || !password}
-                className="w-full flex items-center justify-center gap-2 h-12 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full flex items-center justify-center gap-2 h-12 bg-[#1a472a] hover:bg-[#2d6a4f] text-white font-semibold rounded-2xl shadow-lg shadow-[#1a472a]/20 transition-all duration-300"
               >
                 {isLoading ? (
                   <>
@@ -388,10 +394,10 @@ export default function Login() {
               className="relative"
             >
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200"></div>
+                <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-slate-500">Or continue with</span>
+                <span className="px-4 bg-[#f4f6f4] text-gray-500">Or continue with</span>
               </div>
             </motion.div>
 
@@ -404,7 +410,7 @@ export default function Login() {
             >
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -412,25 +418,25 @@ export default function Login() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                <span className="text-sm font-medium text-slate-700">Google</span>
+                <span className="text-sm font-medium text-gray-700">Google</span>
               </button>
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
               >
                 <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
-                <span className="text-sm font-medium text-slate-700">Facebook</span>
+                <span className="text-sm font-medium text-gray-700">Facebook</span>
               </button>
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
               >
                 <svg className="w-5 h-5" fill="#000000" viewBox="0 0 24 24">
                   <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                 </svg>
-                <span className="text-sm font-medium text-slate-700">Apple</span>
+                <span className="text-sm font-medium text-gray-700">Apple</span>
               </button>
             </motion.div>
           </motion.form>
@@ -442,9 +448,9 @@ export default function Login() {
             transition={{ delay: 0.6 }}
             className="mt-4 text-center"
           >
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <a href={buildBaseHostUrl('/register')} className="font-semibold text-slate-900 hover:text-slate-700 transition-colors">
+              <a href={buildBaseHostUrl('/register')} className="font-semibold text-gray-900 hover:text-gray-700 transition-colors">
                 SignUp
               </a>
             </p>
@@ -459,7 +465,7 @@ export default function Login() {
           alt="Professional Driving"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 to-slate-800/70" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1a472a]/85 to-[#2d6a4f]/75" />
         <div className="relative z-10 flex flex-col justify-center items-center p-16 text-white">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
