@@ -53,22 +53,22 @@ export default function PasswordResetRequest() {
   return (
     <div className="h-screen bg-white flex overflow-hidden">
       {/* Logo - Top Left Corner */}
-      <div className="absolute top-6 left-6 z-20">
+      <div className="absolute top-4 sm:top-6 left-4 sm:left-6 z-20">
         <a href={buildBaseHostUrl('/')} className="inline-flex items-center gap-2">
           <motion.div
             whileHover={{ scale: 1.05 }}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 text-white font-extrabold text-base shadow-md"
+            className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 text-white font-extrabold text-sm sm:text-base shadow-md"
           >
             D
           </motion.div>
-          <span className="text-lg font-bold tracking-tight text-slate-900">
-            DriveSchool<span className="text-slate-600 font-semibold"> SaaS</span>
+          <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
+            DriveSchool<span className="text-slate-600 font-semibold text-sm sm:text-base"> SaaS</span>
           </span>
         </a>
       </div>
 
       {/* Left Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-12 bg-gradient-to-br from-slate-50 to-slate-100">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -92,10 +92,10 @@ export default function PasswordResetRequest() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mb-8"
+            className="mb-6 sm:mb-8"
           >
-            <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Forgot Password?</h1>
-            <p className="text-slate-600 text-base leading-relaxed">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2 sm:mb-3 tracking-tight">Forgot Password?</h1>
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Enter your email address and we'll send you a verification code to reset your password.
             </p>
           </motion.div>
@@ -168,11 +168,11 @@ export default function PasswordResetRequest() {
               <Button
                 type="submit"
                 disabled={isLoading || success || !email}
-                className="w-full flex items-center justify-center gap-2 h-12 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full flex items-center justify-center gap-2 h-10 sm:h-12 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
               >
                 {isLoading ? (
                   <>
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <div className="h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                     Sending...
                   </>
                 ) : (
@@ -187,7 +187,7 @@ export default function PasswordResetRequest() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="mt-6 text-center"
+            className="mt-4 sm:mt-6 text-center"
           >
             <p className="text-sm text-slate-600">
               Remember your password?{' '}

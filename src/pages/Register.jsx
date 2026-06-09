@@ -379,7 +379,7 @@ export default function Register() {
           <div className="absolute bottom-1/4 right-1/4 w-[450px] h-[450px] bg-blue-600/5 rounded-full blur-[130px]" />
         </div>
 
-        <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="flex-1 flex items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
           <div className="w-full max-w-lg z-10">
           <div className="mb-6 text-center">
             <Link to="/" className="inline-flex items-center gap-2.5">
@@ -390,13 +390,13 @@ export default function Register() {
             </Link>
           </div>
 
-          <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-8 backdrop-blur-xl shadow-2xl">
-            <h2 className="text-xl font-bold tracking-tight text-white mb-2">Join Organization</h2>
-            <p className="text-xs text-slate-400 mb-6">Setup your credentials to activate your invited account</p>
+          <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-5 sm:p-6 md:p-8 backdrop-blur-xl shadow-2xl">
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white mb-2">Join Organization</h2>
+            <p className="text-xs sm:text-sm text-slate-400 mb-4 sm:mb-6">Setup your credentials to activate your invited account</p>
 
             {/* Invited banner */}
-            <div className="mb-6 flex items-start gap-3 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-4 text-xs text-emerald-300 shadow-md">
-              <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-400" />
+            <div className="mb-4 sm:mb-6 flex items-start gap-2.5 sm:gap-3 rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3 sm:p-4 text-xs text-emerald-300 shadow-md">
+              <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-emerald-400" />
               <div className="leading-relaxed">
                 <span className="font-bold text-emerald-200 block mb-0.5">Invitation Verified</span>
                 You are invited by a <span className="font-bold text-white uppercase">{inviterInfo.role}</span>.
@@ -404,10 +404,10 @@ export default function Register() {
               </div>
             </div>
 
-            <form onSubmit={handleInvitedSubmit} className="space-y-4">
+            <form onSubmit={handleInvitedSubmit} className="space-y-3.5 sm:space-y-4">
               {(validationError || error) && (
-                <div className="flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-xs text-red-300 shadow-md">
-                  <AlertCircle className="h-4.5 w-4.5 shrink-0 text-red-400 mt-0.5" />
+                <div className="flex items-start gap-2.5 sm:gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-3 sm:p-4 text-xs text-red-300 shadow-md">
+                  <AlertCircle className="h-4 w-4 sm:h-4.5 sm:w-4.5 shrink-0 text-red-400 mt-0.5" />
                   <div className="leading-normal">
                     <span className="font-semibold text-red-200">Registration failed: </span>
                     {validationError || error}
@@ -434,7 +434,7 @@ export default function Register() {
               </div>
 
               {/* Passwords */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Password</label>
                   <div className="relative">
@@ -485,7 +485,7 @@ export default function Register() {
               </div>
 
               {/* Prefilled tags */}
-              <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-900/60 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-3 border-t border-slate-900/60 mt-3 sm:mt-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase block">Account Role</label>
                   <select
@@ -526,22 +526,22 @@ export default function Register() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 mt-4 h-11"
+                className="w-full flex items-center justify-center gap-2 mt-3 sm:mt-4 h-10 sm:h-11"
               >
                 {isLoading ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-white" />
+                    <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-slate-400 border-t-white" />
                     Deploying Node...
                   </>
                 ) : (
                   <>
-                    Activate Invite <Sparkles className="h-4 w-4 text-indigo-200" />
+                    Activate Invite <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-200" />
                   </>
                 )}
               </Button>
             </form>
 
-            <div className="mt-8 text-center pt-6 border-t border-slate-900/60">
+            <div className="mt-6 sm:mt-8 text-center pt-4 sm:pt-6 border-t border-slate-900/60">
               <p className="text-xs text-slate-400">
                 Already registered?{' '}
                 <Link to="/login" className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">Sign In</Link>
@@ -566,7 +566,7 @@ export default function Register() {
         <div className="absolute bottom-1/4 right-1/4 w-[450px] h-[450px] bg-blue-600/5 rounded-full blur-[130px]" />
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="flex-1 flex items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
         <div className="w-full max-w-lg z-10">
         {/* Logo */}
         <div className="mb-6 text-center">
@@ -579,11 +579,11 @@ export default function Register() {
         </div>
 
         {/* Wizard Main Card */}
-        <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-8 backdrop-blur-xl shadow-2xl shadow-indigo-950/20 relative">
+        <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-5 sm:p-6 md:p-8 backdrop-blur-xl shadow-2xl shadow-indigo-950/20 relative">
 
           {/* Stepper Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between text-xs text-slate-500 font-bold uppercase tracking-wider">
+          <div className="mb-5 sm:mb-8">
+            <div className="flex items-center justify-between text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider">
               <span className={step >= 1 ? 'text-indigo-400 font-extrabold' : ''}>1. Admin Account</span>
               <span className={step >= 2 ? 'text-indigo-400 font-extrabold' : ''}>2. School Node</span>
               <span className={step >= 3 ? 'text-indigo-400 font-extrabold' : ''}>3. Deploy</span>
@@ -600,8 +600,8 @@ export default function Register() {
 
           {/* Validation banner */}
           {validationError && (
-            <div className="mb-5 flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-xs text-red-300 shadow-md animate-in fade-in duration-200">
-              <AlertCircle className="h-4.5 w-4.5 shrink-0 text-red-400 mt-0.5" />
+            <div className="mb-4 sm:mb-5 flex items-start gap-2.5 sm:gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-3 sm:p-4 text-xs text-red-300 shadow-md animate-in fade-in duration-200">
+              <AlertCircle className="h-4 w-4 sm:h-4.5 sm:w-4.5 shrink-0 text-red-400 mt-0.5" />
               <div className="leading-normal">
                 <span className="font-semibold text-red-200">Alert: </span>
                 {validationError}
@@ -613,9 +613,9 @@ export default function Register() {
               STEP 1: School Administration Account Form
           ═══════════════════════════════════════════════ */}
           {step === 1 && (
-            <form onSubmit={handleStep1Next} className="space-y-5 animate-in fade-in duration-300">
+            <form onSubmit={handleStep1Next} className="space-y-4 sm:space-y-5 animate-in fade-in duration-300">
               <div>
-                <h3 className="text-lg font-bold text-white mb-1">School Administration Account</h3>
+                <h3 className="text-base sm:text-lg font-bold text-white mb-1">School Administration Account</h3>
                 <p className="text-xs text-slate-400">Deploy a central administrator node to supervise school workflows</p>
               </div>
 
@@ -638,7 +638,7 @@ export default function Register() {
               </div>
 
               {/* Password Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 {/* Password */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Account Password</label>
@@ -694,16 +694,16 @@ export default function Register() {
               <Button
                 type="submit"
                 disabled={isProvisioningAdmin}
-                className="w-full h-11 flex items-center justify-center gap-2 mt-2"
+                className="w-full h-10 sm:h-11 flex items-center justify-center gap-2 mt-2"
               >
                 {isProvisioningAdmin ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                     Creating Account...
                   </>
                 ) : (
                   <>
-                    Continue Setup <ArrowRight className="h-4 w-4" />
+                    Continue Setup <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </>
                 )}
               </Button>
@@ -714,9 +714,9 @@ export default function Register() {
               STEP 2: Tenet Creation ("Create your Learners")
           ═══════════════════════════════════════════════ */}
           {step === 2 && (
-            <form onSubmit={handleStep2Next} className="space-y-5 animate-in fade-in duration-300">
+            <form onSubmit={handleStep2Next} className="space-y-4 sm:space-y-5 animate-in fade-in duration-300">
               <div>
-                <h3 className="text-lg font-bold text-white mb-1">Create your Learners</h3>
+                <h3 className="text-base sm:text-lg font-bold text-white mb-1">Create your Learners</h3>
                 <p className="text-xs text-slate-400">Configure your localized SaaS node properties</p>
               </div>
 

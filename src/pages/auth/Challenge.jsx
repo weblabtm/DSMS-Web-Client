@@ -121,21 +121,21 @@ export default function Challenge() {
         <div className="absolute top-1/2 left-1/2 w-[450px] h-[450px] -translate-x-1/2 -translate-y-1/2 bg-indigo-600/10 rounded-full blur-[130px]" />
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="flex-1 flex items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
         <div className="w-full max-w-md z-10">
 
           {/* Header */}
-          <div className="mb-8 text-center">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-extrabold text-xl shadow-lg shadow-indigo-500/25 mb-4">
-              <Shield className="h-6 w-6" />
+          <div className="mb-6 sm:mb-8 text-center">
+            <div className="inline-flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-extrabold text-lg sm:text-xl shadow-lg shadow-indigo-500/25 mb-3 sm:mb-4">
+              <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
               Security Challenge
             </h1>
           </div>
 
           {/* Main Card */}
-          <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-8 backdrop-blur-xl shadow-2xl">
+          <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-5 sm:p-6 md:p-8 backdrop-blur-xl shadow-2xl">
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <p className="text-sm text-slate-400">
@@ -144,17 +144,17 @@ export default function Challenge() {
               </div>
 
               {error && (
-                <div className="flex items-start gap-3 rounded-xl border border-red-500/25 bg-red-500/5 p-4 text-xs text-red-300">
-                  <AlertCircle className="h-5 w-5 shrink-0 text-red-400 mt-0.5" />
+                <div className="flex items-start gap-2.5 sm:gap-3 rounded-xl border border-red-500/25 bg-red-500/5 p-3 sm:p-4 text-xs text-red-300">
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-red-400 mt-0.5" />
                   <div>{error}</div>
                 </div>
               )}
 
               {/* CAPTCHA container */}
-              <div className="flex flex-col items-center justify-center py-4 min-h-[78px] gap-4">
+              <div className="flex flex-col items-center justify-center py-3 sm:py-4 min-h-[78px] gap-3 sm:gap-4">
                 {isLoading && (
-                  <div className="flex items-center gap-2 text-slate-400 text-sm">
-                    <RefreshCw className="h-4 w-4 animate-spin text-indigo-400" />
+                  <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm">
+                    <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin text-indigo-400" />
                     Loading security check...
                   </div>
                 )}

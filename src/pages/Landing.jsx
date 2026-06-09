@@ -57,87 +57,88 @@ export default function Landing() {
           mobile/tablet: single col, image below copy
           lg+:           two cols, image right
       ═══════════════════════════════════════════════ */}
-            <section className="relative pt-10 pb-16 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-28 overflow-hidden">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6">
-                    <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            <section className="relative pt-8 sm:pt-10 pb-12 sm:pb-16 lg:pt-16 lg:pb-24 xl:pt-20 xl:pb-28 overflow-hidden">
+                <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6">
+                    <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
 
                         {/* ── Left: Copy ── */}
                         <div className="flex flex-col items-start max-w-xl mx-auto lg:mx-0 text-left">
 
-                            <Badge variant="default" className="mb-5 flex gap-1.5 py-1 px-3 border border-indigo-500/25 bg-indigo-500/5 cursor-default text-xs">
-                                <Sparkles className="h-3 w-3 text-indigo-400 shrink-0" />
+                            <Badge variant="default" className="mb-4 sm:mb-5 flex gap-1 sm:gap-1.5 py-1 px-2.5 sm:px-3 border border-indigo-500/25 bg-indigo-500/5 cursor-default text-[10px] sm:text-xs">
+                                <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-indigo-400 shrink-0" />
                                 <span className="text-indigo-200">Normal route client mode is active.</span>
                             </Badge>
 
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.08] mb-5 text-white">
+                            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.08] mb-4 sm:mb-5 text-white">
                                 Driving Schools,{' '}
                                 <span className="bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
                                     Managed Perfectly
                                 </span>
                             </h1>
 
-                            <p className="text-sm sm:text-base md:text-lg text-slate-400 leading-relaxed mb-8">
+                            <p className="text-sm sm:text-base md:text-lg text-slate-400 leading-relaxed mb-6 sm:mb-8">
                                 DSMS is a multi-tenant SaaS workspace enabling modern driving academies to scale operations.
                                 Automate instructor rosters, handle student bookings, process digital invoices, and secure certifications effortlessly.
                             </p>
 
                             {/* CTAs */}
-                            <div className="flex flex-col xs:flex-row gap-3 w-full sm:w-auto">
-                                <a href="/register" className="w-full xs:w-auto">
-                                    <Button size="lg" className="w-full xs:w-auto shadow-lg hover:shadow-indigo-500/20">
-                                        Get Started Free <ArrowRight className="h-4 w-4" />
+                            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full sm:w-auto">
+                                <a href="/register" className="w-full sm:w-auto">
+                                    <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-indigo-500/20 text-sm sm:text-base">
+                                        Get Started Free <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                     </Button>
                                 </a>
-                                <Button variant="outline" size="lg" className="w-full xs:w-auto border-slate-800 hover:bg-slate-900 hover:border-slate-700">
+                                <Button variant="outline" size="lg" className="w-full sm:w-auto border-slate-800 hover:bg-slate-900 hover:border-slate-700 text-sm sm:text-base">
                                     Schedule Sales Call
                                 </Button>
                             </div>
 
                             {/* Social proof */}
-                            <div className="mt-8 flex items-center gap-3 text-xs sm:text-sm text-slate-500">
-                                <div className="flex -space-x-2 shrink-0">
+                            <div className="mt-6 sm:mt-8 flex items-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-slate-500">
+                                <div className="flex -space-x-1.5 sm:-space-x-2 shrink-0">
                                     {[
                                         ['bg-indigo-500', 'ML'],
                                         ['bg-blue-500', 'SF'],
                                         ['bg-cyan-500', 'AK'],
                                         ['bg-emerald-500', 'JD'],
                                     ].map(([color, initials], i) => (
-                                        <div key={i} className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full ${color} border-2 border-slate-950 flex items-center justify-center text-[9px] sm:text-[10px] font-bold text-white`}>
+                                        <div key={i} className={`h-6 w-6 sm:h-7 sm:w-8 rounded-full ${color} border-2 border-slate-950 flex items-center justify-center text-[8px] sm:text-[9px] sm:text-[10px] font-bold text-white`}>
                                             {initials}
                                         </div>
                                     ))}
                                 </div>
-                                <span>Trusted by <span className="font-semibold text-slate-300">500+ academies</span> worldwide</span>
+                                <span className="text-[10px] sm:text-xs sm:text-sm">Trusted by <span className="font-semibold text-slate-300">500+ academies</span> worldwide</span>
                             </div>
                         </div>
 
                         {/* ── Right: Dashboard image ── */}
-                        <div className="relative w-full mt-4 lg:mt-0">
+                        <div className="relative w-full mt-6 lg:mt-0">
                             {/* Glow halo */}
-                            <div className="absolute -inset-3 sm:-inset-5 bg-gradient-to-tr from-indigo-500/10 via-blue-500/5 to-transparent rounded-3xl blur-2xl pointer-events-none" />
+                            <div className="absolute -inset-2 sm:-inset-3 lg:-inset-5 bg-gradient-to-tr from-indigo-500/10 via-blue-500/5 to-transparent rounded-2xl sm:rounded-3xl blur-xl sm:blur-2xl pointer-events-none" />
 
                             {/* Image frame */}
-                            <div className="relative rounded-xl sm:rounded-2xl border border-slate-800 bg-slate-950/40 p-1.5 sm:p-2 shadow-[0_0_60px_rgba(79,70,229,0.15)] overflow-hidden">
+                            <div className="relative rounded-lg sm:rounded-xl lg:rounded-2xl border border-slate-800 bg-slate-950/40 p-1 sm:p-1.5 lg:p-2 shadow-[0_0_60px_rgba(79,70,229,0.15)] overflow-hidden">
                                 <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
                                 <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
                                 <img
                                     src={heroDashboard}
                                     alt="DSMS driving school management dashboard preview"
-                                    className="w-full rounded-lg sm:rounded-xl border border-slate-900 shadow-2xl brightness-[0.96] block"
+                                    className="w-full rounded-md sm:rounded-lg lg:rounded-xl border border-slate-900 shadow-2xl brightness-[0.96] block"
                                 />
                             </div>
 
                             {/* Floating badge: live dot — only on sm+ to avoid overflow */}
-                            <div className="absolute -top-3 -left-3 sm:-top-4 sm:-left-4 hidden sm:flex bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl items-center gap-2 text-xs sm:text-sm font-semibold text-white">
-                                <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                                <span>Live scheduling active</span>
+                            <div className="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 lg:-top-4 lg:-left-4 hidden sm:flex bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-2.5 shadow-xl items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs sm:text-sm font-semibold text-white">
+                                <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 lg:h-2.5 lg:w-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                                <span className="hidden sm:inline">Live scheduling active</span>
+                                <span className="sm:hidden">Live</span>
                             </div>
 
                             {/* Floating badge: hours saved — only on md+ */}
-                            <div className="absolute -bottom-3 -right-3 md:-bottom-4 md:-right-4 hidden md:flex bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl items-center gap-2">
+                            <div className="absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3 md:-bottom-4 md:-right-4 hidden md:flex bg-slate-900 border border-slate-800 rounded-lg sm:rounded-xl px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-2.5 shadow-xl items-center gap-1.5 sm:gap-2">
                                 <div className="flex flex-col leading-tight">
-                                    <span className="text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Monthly Hours Saved</span>
-                                    <span className="text-lg sm:text-xl font-extrabold text-indigo-400">2,400 hrs</span>
+                                    <span className="text-[9px] sm:text-[10px] sm:text-xs text-slate-500 font-semibold uppercase tracking-wider">Monthly Hours Saved</span>
+                                    <span className="text-base sm:text-lg sm:text-xl font-extrabold text-indigo-400">2,400 hrs</span>
                                 </div>
                             </div>
                         </div>
@@ -150,18 +151,18 @@ export default function Landing() {
           3. FEATURES GRID
           1 col → 2 col (sm) → 3 col (md)
       ═══════════════════════════════════════════════ */}
-            <section id="features" className="py-16 sm:py-20 border-t border-slate-900 bg-slate-900/10">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6">
-                    <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-3 sm:mb-4 text-white">
+            <section id="features" className="py-12 sm:py-16 border-t border-slate-900 bg-slate-900/10">
+                <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6">
+                    <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
+                        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight mb-2 sm:mb-3 md:mb-4 text-white">
                             Complete Academy Operations Suite
                         </h2>
-                        <p className="text-sm sm:text-base text-slate-400">
+                        <p className="text-xs sm:text-sm md:text-base text-slate-400">
                             Everything required to run a multi-branch driving academy in one cloud unified portal.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                         {[
                             { icon: Users, color: 'indigo', title: 'Enrollment & Progress', desc: 'Track full student lifecycles, log dynamic permit states, lesson checkpoints, and theoretical test histories.' },
                             { icon: CalendarIcon, color: 'blue', title: 'Automated Scheduling', desc: 'Avoid dual-booking errors. Pair active instructors with learner vehicles and sync shifts in real-time.' },
@@ -171,12 +172,12 @@ export default function Landing() {
                             { icon: BarChart3, color: 'pink', title: 'Real-Time Reports', desc: 'Drill down on monthly profits, branch rankings, vehicle gas logs, and overall registration analytics.' },
                         ].map(({ icon: Icon, color, title, desc }) => (
                             <Card key={title} className="group hover:-translate-y-1 hover:border-slate-700 transition-all duration-300">
-                                <CardHeader>
-                                    <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-${color}-500/10 flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}>
-                                        <Icon className={`h-5 w-5 sm:h-6 sm:w-6 text-${color}-400`} />
+                                <CardHeader className="p-4 sm:p-5 md:p-6">
+                                    <div className={`h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-12 rounded-xl bg-${color}-500/10 flex items-center justify-center mb-2.5 sm:mb-3 md:mb-4 group-hover:scale-110 transition-transform`}>
+                                        <Icon className={`h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-${color}-400`} />
                                     </div>
-                                    <CardTitle className="text-base sm:text-lg">{title}</CardTitle>
-                                    <CardDescription className="pt-2 leading-relaxed text-xs sm:text-sm">{desc}</CardDescription>
+                                    <CardTitle className="text-sm sm:text-base md:text-lg">{title}</CardTitle>
+                                    <CardDescription className="pt-1.5 sm:pt-2 leading-relaxed text-[10px] sm:text-xs md:text-sm">{desc}</CardDescription>
                                 </CardHeader>
                             </Card>
                         ))}
@@ -187,13 +188,13 @@ export default function Landing() {
             {/* ═══════════════════════════════════════════════
           4. DASHBOARD SIMULATOR
       ═══════════════════════════════════════════════ */}
-            <section id="simulator" className="py-16 sm:py-20 border-t border-slate-900 bg-slate-950">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6">
-                    <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-3 text-white">
+            <section id="simulator" className="py-12 sm:py-16 border-t border-slate-900 bg-slate-950">
+                <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6">
+                    <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
+                        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight mb-2 sm:mb-3 text-white">
                             Try the Console Walkthrough
                         </h2>
-                        <p className="text-sm sm:text-base text-slate-400">
+                        <p className="text-xs sm:text-sm md:text-base text-slate-400">
                             Click tabs to interact with a direct simulator of the active driving school dashboard.
                         </p>
                     </div>
@@ -203,28 +204,28 @@ export default function Landing() {
                             {/* Tabs list — scrolls horizontally on xs */}
                             <div className="w-full overflow-x-auto pb-2">
                                 <TabsList className="flex w-max min-w-full sm:grid sm:grid-cols-3 sm:w-full mx-auto">
-                                    <TabsTrigger value="scheduling" className="text-xs sm:text-sm px-3 sm:px-4">Roster Scheduler</TabsTrigger>
-                                    <TabsTrigger value="students" className="text-xs sm:text-sm px-3 sm:px-4">Student Roster</TabsTrigger>
-                                    <TabsTrigger value="billing" className="text-xs sm:text-sm px-3 sm:px-4">Quick Billing</TabsTrigger>
+                                    <TabsTrigger value="scheduling" className="text-[10px] sm:text-xs md:text-sm px-2.5 sm:px-3 md:px-4">Roster Scheduler</TabsTrigger>
+                                    <TabsTrigger value="students" className="text-[10px] sm:text-xs md:text-sm px-2.5 sm:px-3 md:px-4">Student Roster</TabsTrigger>
+                                    <TabsTrigger value="billing" className="text-[10px] sm:text-xs md:text-sm px-2.5 sm:px-3 md:px-4">Quick Billing</TabsTrigger>
                                 </TabsList>
                             </div>
 
                             {/* Tab 1: Scheduling */}
                             <TabsContent value="scheduling">
                                 <Card className="border-slate-800 bg-slate-900/30 overflow-hidden shadow-2xl">
-                                    <CardHeader className="bg-slate-950/40 border-b border-slate-900/80 px-4 sm:px-6 py-4">
-                                        <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                                            <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400 shrink-0" />
+                                    <CardHeader className="bg-slate-950/40 border-b border-slate-900/80 px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+                                        <CardTitle className="text-xs sm:text-sm md:text-base flex items-center gap-1.5 sm:gap-2">
+                                            <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 text-indigo-400 shrink-0" />
                                             Dynamic Scheduling Calendar
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent className="p-4 sm:p-6">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                                    <CardContent className="p-3 sm:p-4 md:p-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 md:gap-4">
                                             {/* Instructor A */}
-                                            <div className="rounded-xl bg-slate-950/80 border border-slate-800 p-3 sm:p-4">
-                                                <div className="flex justify-between items-center mb-3 gap-2">
-                                                    <span className="text-[10px] sm:text-xs font-bold text-slate-400 tracking-wider uppercase truncate">Alex R.</span>
-                                                    <Badge variant="success" className="text-[10px] py-0 px-2 shrink-0">Online</Badge>
+                                            <div className="rounded-xl bg-slate-950/80 border border-slate-800 p-2.5 sm:p-3 md:p-4">
+                                                <div className="flex justify-between items-center mb-2 sm:mb-3 gap-2">
+                                                    <span className="text-[9px] sm:text-[10px] md:text-xs font-bold text-slate-400 tracking-wider uppercase truncate">Alex R.</span>
+                                                    <Badge variant="success" className="text-[9px] sm:text-[10px] py-0 px-1.5 sm:px-2 shrink-0">Online</Badge>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <div className="p-2 sm:p-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-xs">
@@ -279,7 +280,7 @@ export default function Landing() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0">
-                                        <div className="overflow-x-auto">
+                                        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
                                             <table className="w-full text-left text-xs sm:text-sm min-w-[500px]">
                                                 <thead>
                                                     <tr className="border-b border-slate-900 bg-slate-950/30 text-slate-400">

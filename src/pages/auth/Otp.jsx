@@ -311,21 +311,21 @@ export default function Otp() {
         <div className="absolute top-1/2 left-1/2 w-[450px] h-[450px] -translate-x-1/2 -translate-y-1/2 bg-indigo-600/10 rounded-full blur-[130px]" />
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="flex-1 flex items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
         <div className="w-full max-w-md z-10">
           
           {/* Header */}
-          <div className="mb-8 text-center">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-extrabold text-xl shadow-lg shadow-indigo-500/25 mb-4">
-              <Shield className="h-6 w-6" />
+          <div className="mb-6 sm:mb-8 text-center">
+            <div className="inline-flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-extrabold text-lg sm:text-xl shadow-lg shadow-indigo-500/25 mb-3 sm:mb-4">
+              <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
               Security Verification
             </h1>
           </div>
 
           {/* Main Card */}
-          <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-8 backdrop-blur-xl shadow-2xl">
+          <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-5 sm:p-6 md:p-8 backdrop-blur-xl shadow-2xl">
             <AnimatePresence mode="wait">
 
               {/* PHASE 1: REQUEST OTP */}
@@ -338,11 +338,11 @@ export default function Otp() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <div className="text-center space-y-4">
-                    <p className="text-sm text-slate-400 leading-relaxed">
+                  <div className="text-center space-y-3 sm:space-y-4">
+                    <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                       To complete this verification request, a security code will be generated for your account details:
                     </p>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-3 text-left">
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3 sm:p-4 space-y-2.5 sm:space-y-3 text-left">
                       <div className="flex items-start justify-between gap-4 text-xs">
                         <span className="text-slate-500 font-semibold uppercase tracking-wider">Email Address</span>
                         <span className="text-slate-200 font-medium break-all text-right">
@@ -360,8 +360,8 @@ export default function Otp() {
                   </div>
 
                   {error && (
-                    <div className="flex items-start gap-3 rounded-xl border border-red-500/25 bg-red-500/5 p-4 text-xs text-red-300">
-                      <AlertCircle className="h-5 w-5 shrink-0 text-red-400 mt-0.5" />
+                    <div className="flex items-start gap-2.5 sm:gap-3 rounded-xl border border-red-500/25 bg-red-500/5 p-3 sm:p-4 text-xs text-red-300">
+                      <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-red-400 mt-0.5" />
                       <div>{error}</div>
                     </div>
                   )}
@@ -369,11 +369,11 @@ export default function Otp() {
                   <Button
                     onClick={() => handleRequestOtp()}
                     disabled={isLoading}
-                    className="w-full h-12 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                    className="w-full h-10 sm:h-12 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     {isLoading ? (
                       <>
-                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                         Generating Code...
                       </>
                     ) : (
@@ -402,11 +402,11 @@ export default function Otp() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <div className="text-center space-y-4">
-                    <p className="text-sm text-slate-400 leading-relaxed">
+                  <div className="text-center space-y-3 sm:space-y-4">
+                    <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                       We've sent a 6-digit verification code to the registered details below:
                     </p>
-                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-3 text-left">
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3 sm:p-4 space-y-2.5 sm:space-y-3 text-left">
                       <div className="flex items-start justify-between gap-4 text-xs">
                         <span className="text-slate-500 font-semibold uppercase tracking-wider">Email Address</span>
                         <span className="text-slate-200 font-medium break-all text-right">
@@ -432,15 +432,15 @@ export default function Otp() {
                   </div>
 
                   {error && (
-                    <div className="flex items-start gap-3 rounded-xl border border-red-500/25 bg-red-500/5 p-4 text-xs text-red-300">
-                      <AlertCircle className="h-5 w-5 shrink-0 text-red-400 mt-0.5" />
+                    <div className="flex items-start gap-2.5 sm:gap-3 rounded-xl border border-red-500/25 bg-red-500/5 p-3 sm:p-4 text-xs text-red-300">
+                      <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-red-400 mt-0.5" />
                       <div>{error}</div>
                     </div>
                   )}
 
                   {/* Code Input boxes */}
-                  <form onSubmit={handleVerifyOtp} className="space-y-6">
-                    <div className="flex justify-between gap-2">
+                  <form onSubmit={handleVerifyOtp} className="space-y-4 sm:space-y-6">
+                    <div className="flex justify-between gap-1.5 sm:gap-2">
                       {code.map((digit, idx) => (
                         <input
                           key={idx}
@@ -453,7 +453,7 @@ export default function Otp() {
                           onChange={(e) => handleInputChange(idx, e.target.value)}
                           onKeyDown={(e) => handleKeyDown(idx, e)}
                           onPaste={idx === 0 ? handlePaste : undefined}
-                          className="w-12 h-14 rounded-xl border-2 border-slate-800 bg-slate-950 text-center text-xl font-extrabold text-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
+                          className="w-10 h-12 sm:w-12 sm:h-14 rounded-xl border-2 border-slate-800 bg-slate-950 text-center text-lg sm:text-xl font-extrabold text-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-sm"
                         />
                       ))}
                     </div>
@@ -461,16 +461,16 @@ export default function Otp() {
                     <Button
                       type="submit"
                       disabled={isLoading || code.some(x => !x)}
-                      className="w-full h-12 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                      className="w-full h-10 sm:h-12 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base"
                     >
                       {isLoading ? (
                         <>
-                          <RefreshCw className="h-4 w-4 animate-spin" />
+                          <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                           Verifying...
                         </>
                       ) : (
                         <>
-                          <Key className="h-4 w-4" /> Verify Code
+                          <Key className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Verify Code
                         </>
                       )}
                     </Button>
@@ -494,15 +494,15 @@ export default function Otp() {
                   key="success-phase"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="py-8 text-center space-y-4"
+                  className="py-6 sm:py-8 text-center space-y-3 sm:space-y-4"
                 >
-                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 mb-2">
-                    <CheckCircle2 className="h-10 w-10 animate-bounce" />
+                  <div className="inline-flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 mb-1.5 sm:mb-2">
+                    <CheckCircle2 className="h-8 w-8 sm:h-10 sm:w-10 animate-bounce" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">
+                  <h3 className="text-lg sm:text-xl font-bold text-white">
                     {actionParam === 'unlock' ? 'Account Reactivated' : 'Verification Successful'}
                   </h3>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-xs sm:text-sm text-slate-400">
                     {actionParam === 'unlock'
                       ? 'Your account has been successfully unlocked. Redirecting you to login...'
                       : 'Your identity has been verified. Redirecting you to the application...'}
@@ -516,13 +516,13 @@ export default function Otp() {
                   key="expired-phase"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="py-8 text-center space-y-4"
+                  className="py-6 sm:py-8 text-center space-y-3 sm:space-y-4"
                 >
-                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-400 border border-red-500/25 mb-2">
-                    <AlertCircle className="h-10 w-10 animate-pulse" />
+                  <div className="inline-flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-red-500/10 text-red-400 border border-red-500/25 mb-1.5 sm:mb-2">
+                    <AlertCircle className="h-8 w-8 sm:h-10 sm:w-10 animate-pulse" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Verification Expired</h3>
-                  <p className="text-sm text-slate-400">
+                  <h3 className="text-lg sm:text-xl font-bold text-white">Verification Expired</h3>
+                  <p className="text-xs sm:text-sm text-slate-400">
                     Verification code has expired. Redirecting back...
                   </p>
                 </motion.div>
@@ -534,19 +534,19 @@ export default function Otp() {
                   key="invalid-link-phase"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="py-8 text-center space-y-4"
+                  className="py-6 sm:py-8 text-center space-y-3 sm:space-y-4"
                 >
-                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-400 border border-red-500/25 mb-2">
-                    <AlertCircle className="h-10 w-10 animate-pulse" />
+                  <div className="inline-flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-red-500/10 text-red-400 border border-red-500/25 mb-1.5 sm:mb-2">
+                    <AlertCircle className="h-8 w-8 sm:h-10 sm:w-10 animate-pulse" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Activation Link Invalid</h3>
-                  <p className="text-sm text-red-300 px-2 leading-relaxed">
+                  <h3 className="text-lg sm:text-xl font-bold text-white">Activation Link Invalid</h3>
+                  <p className="text-xs sm:text-red-300 px-2 leading-relaxed">
                     {error || 'Your activation link has expired or is invalid. Please contact the Driving School to reactivate your account.'}
                   </p>
-                  <div className="pt-4">
+                  <div className="pt-3 sm:pt-4">
                     <Button
                       onClick={() => navigate('/login')}
-                      className="w-full h-12 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all duration-300"
+                      className="w-full h-10 sm:h-12 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all duration-300 text-sm sm:text-base"
                     >
                       Back to Login
                     </Button>

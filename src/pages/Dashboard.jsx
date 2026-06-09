@@ -129,13 +129,13 @@ export default function Dashboard() {
 
       {/* Header */}
       <header className="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="mx-auto max-w-7xl h-16 flex items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-extrabold text-base shadow-lg shadow-indigo-500/20 shrink-0">
+        <div className="mx-auto max-w-7xl h-14 sm:h-16 flex items-center justify-between px-3 sm:px-4 md:px-6">
+          <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-indigo-500/20 shrink-0">
               D
             </div>
-            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              DSMS<span className="text-indigo-400 font-medium text-[10px] ml-1 uppercase tracking-wider">SaaS</span>
+            <span className="text-base sm:text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+              DSMS<span className="text-indigo-400 font-medium text-[9px] sm:text-[10px] md:text-xs ml-0.5 sm:ml-1 uppercase tracking-wider">SaaS</span>
             </span>
           </Link>
 
@@ -143,44 +143,44 @@ export default function Dashboard() {
             onClick={() => logout()}
             variant="outline"
             size="sm"
-            className="border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white"
+            className="border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white text-xs sm:text-sm"
           >
-            <LogOut className="h-4 w-4 mr-2" /> Sign Out
+            <LogOut className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" /> Sign Out
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
+      <main className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-8 sm:py-12">
         {/* Welcome Row */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-500 bg-clip-text text-transparent">
+        <div className="mb-6 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-500 bg-clip-text text-transparent">
             Control Center
           </h1>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-400">
             Monitor deployments, manage roles, and issue invitation tokens.
           </p>
         </div>
 
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
 
           {/* Col 1: Profile & Node Info */}
           <div className="lg:col-span-1 space-y-8">
             {/* Profile Info Card */}
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 backdrop-blur-xl shadow-2xl">
-              <h2 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
-                <User className="h-4.5 w-4.5 text-indigo-400" /> Active Session
+            <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-4 sm:p-6 backdrop-blur-xl shadow-2xl">
+              <h2 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-5 flex items-center gap-2">
+                <User className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-indigo-400" /> Active Session
               </h2>
 
               <div className="space-y-5">
                 {/* Account Name */}
-                <div className="bg-slate-950/50 rounded-xl p-4 border border-slate-900/50 flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-slate-300 text-sm">
+                <div className="bg-slate-950/50 rounded-xl p-3 sm:p-4 border border-slate-900/50 flex items-center gap-3 sm:gap-4">
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-slate-300 text-xs sm:text-sm">
                     {user?.userId?.substring(0, 2).toUpperCase() || 'US'}
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-slate-200 truncate max-w-[180px]">
+                    <div className="text-xs sm:text-sm font-semibold text-slate-200 truncate max-w-[140px] sm:max-w-[180px]">
                       {user?.userId || 'N/A'}
                     </div>
                     <span className="text-[10px] text-slate-500 font-mono">UID: {user?.userId?.substring(0, 8) || 'unknown'}</span>
@@ -188,7 +188,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Properties */}
-                <div className="space-y-3.5 text-xs">
+                <div className="space-y-2.5 sm:space-y-3.5 text-[10px] sm:text-xs">
                   {/* Role Badge */}
                   <div className="flex justify-between items-center py-2 border-b border-slate-900/50">
                     <span className="text-slate-400 font-medium">System Role</span>
@@ -231,8 +231,8 @@ export default function Dashboard() {
             </div>
 
             {/* Micro FAQ / Hint */}
-            <div className="rounded-xl border border-indigo-950/20 bg-indigo-950/5 p-5 text-xs leading-relaxed text-slate-400 flex gap-3">
-              <Info className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
+            <div className="rounded-xl border border-indigo-950/20 bg-indigo-950/5 p-4 sm:p-5 text-[10px] sm:text-xs leading-relaxed text-slate-400 flex gap-2.5 sm:gap-3">
+              <Info className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400 shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold text-slate-200 block mb-0.5">Simulation Node Info</span>
                 All auth actions automatically persist credentials inside local storage, and request fresh auth rotation tokens on start. Perfect for production node isolation.
@@ -241,19 +241,19 @@ export default function Dashboard() {
           </div>
 
           {/* Col 2 & 3: Invite Link Generator */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-8 backdrop-blur-xl shadow-2xl">
-              <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-indigo-400" /> Organizational Invite Generator
+          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+            <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-5 sm:p-6 md:p-8 backdrop-blur-xl shadow-2xl">
+              <h2 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 flex items-center gap-2">
+                <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" /> Organizational Invite Generator
               </h2>
-              <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+              <p className="text-[10px] sm:text-xs text-slate-400 mb-4 sm:mb-6 leading-relaxed">
                 Generate localized registration invite tokens. These links allow new users to deploy their credentials inside your tenancy cluster using the backend role-permission schema.
               </p>
 
               {canInvite ? (
                 <div className="space-y-6">
                   {/* Selector Row */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-end">
 
                     {/* Role Selection */}
                     <div className="md:col-span-2 space-y-2">
@@ -278,7 +278,7 @@ export default function Dashboard() {
                       <Button
                         onClick={handleGenerateLink}
                         disabled={!targetRole}
-                        className="w-full h-11 flex items-center justify-center gap-2"
+                        className="w-full h-10 sm:h-11 flex items-center justify-center gap-2 text-xs sm:text-sm"
                       >
                         Generate Link
                       </Button>
@@ -287,43 +287,43 @@ export default function Dashboard() {
 
                   {/* Output Invite Link */}
                   {generatedLink && (
-                    <div className="mt-8 space-y-3 pt-6 border-t border-slate-900/60 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="mt-6 sm:mt-8 space-y-2.5 sm:space-y-3 pt-4 sm:pt-6 border-t border-slate-900/60 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
                           Generated Invite URL ({targetRole})
                         </span>
                         {copied && (
                           <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-                            <Check className="h-3 w-3" /> Copied to clipboard!
+                            <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Copied to clipboard!
                           </span>
                         )}
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-slate-950 rounded-lg border border-slate-800 px-4 py-2.5 text-xs text-slate-300 select-all font-mono truncate">
+                        <div className="flex-1 bg-slate-950 rounded-lg border border-slate-800 px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-xs text-slate-300 select-all font-mono truncate">
                           {generatedLink}
                         </div>
                         <button
                           onClick={handleCopy}
-                          className="h-10 w-10 shrink-0 flex items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-900 hover:border-slate-700 transition-all active:scale-[0.96] cursor-pointer"
+                          className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 flex items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-900 hover:border-slate-700 transition-all active:scale-[0.96] cursor-pointer"
                           title="Copy Link"
                         >
-                          <Copy className="h-4.5 w-4.5" />
+                          <Copy className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                         </button>
 
                         <a
                           href={generatedLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="h-10 w-10 shrink-0 flex items-center justify-center rounded-lg border border-indigo-900/30 bg-indigo-950/20 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 hover:border-indigo-800 transition-all active:scale-[0.96]"
+                          className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 flex items-center justify-center rounded-lg border border-indigo-900/30 bg-indigo-950/20 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 hover:border-indigo-800 transition-all active:scale-[0.96]"
                           title="Open in new tab (Test flow)"
                         >
-                          <ExternalLink className="h-4.5 w-4.5" />
+                          <ExternalLink className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                         </a>
                       </div>
 
-                      <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/10 p-4 text-xs text-slate-400 leading-normal flex gap-3.5">
-                        <UserPlus className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+                      <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/10 p-3 sm:p-4 text-[10px] sm:text-xs text-slate-400 leading-normal flex gap-2.5 sm:gap-3.5">
+                        <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400 shrink-0 mt-0.5" />
                         <div>
                           <span className="font-bold text-emerald-300 block mb-0.5">Ready to Test!</span>
                           Click the <span className="font-semibold text-white">External Link</span> icon above to open an incognito/new tab window.
@@ -347,25 +347,25 @@ export default function Dashboard() {
             </div>
 
             {/* ── Active Sessions Panel ── */}
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 backdrop-blur-xl shadow-2xl">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-indigo-400" /> Active Sessions
+            <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-4 sm:p-6 backdrop-blur-xl shadow-2xl">
+              <div className="flex items-center justify-between mb-4 sm:mb-5">
+                <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                  <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-400" /> Active Sessions
                 </h2>
                 <button
                   onClick={fetchSessions}
                   disabled={sessionsLoading}
-                  className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-900 transition-all disabled:opacity-40 cursor-pointer"
+                  className="h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-900 transition-all disabled:opacity-40 cursor-pointer"
                   title="Refresh sessions"
                 >
-                  <RefreshCw className={`h-3.5 w-3.5 ${sessionsLoading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${sessionsLoading ? 'animate-spin' : ''}`} />
                 </button>
               </div>
 
               {sessionsLoading && sessions.length === 0 ? (
-                <div className="text-xs text-slate-500 text-center py-6">Loading sessions…</div>
+                <div className="text-[10px] sm:text-xs text-slate-500 text-center py-4 sm:py-6">Loading sessions…</div>
               ) : sessions.length === 0 ? (
-                <div className="text-xs text-slate-500 text-center py-6">No active sessions found.</div>
+                <div className="text-[10px] sm:text-xs text-slate-500 text-center py-4 sm:py-6">No active sessions found.</div>
               ) : (
                 <ul className="space-y-2">
                   {sessions.map((s) => {
@@ -381,18 +381,18 @@ export default function Dashboard() {
                             : 'border-slate-800/50 bg-slate-950/30'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <PlatformIcon className={`h-4 w-4 shrink-0 ${isCurrentSession ? 'text-indigo-400' : 'text-slate-500'}`} />
+                        <div className="flex items-center gap-2.5 sm:gap-3">
+                          <PlatformIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 ${isCurrentSession ? 'text-indigo-400' : 'text-slate-500'}`} />
                           <div>
-                            <div className="font-semibold text-slate-200">
+                            <div className="text-[10px] sm:text-xs font-semibold text-slate-200">
                               {s.deviceOs || 'Unknown OS'}
                               {isCurrentSession && (
-                                <span className="ml-2 text-[9px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/60 border border-indigo-800/40 rounded px-1.5 py-0.5">
+                                <span className="ml-1.5 sm:ml-2 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/60 border border-indigo-800/40 rounded px-1 sm:px-1.5 py-0.5">
                                   Current
                                 </span>
                               )}
                             </div>
-                            <div className="text-slate-500 mt-0.5">
+                            <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5">
                               {platform} · Signed in {new Date(s.createdAt * 1000).toLocaleDateString()}
                             </div>
                           </div>
@@ -402,10 +402,10 @@ export default function Dashboard() {
                           <button
                             onClick={() => handleRevoke(s.sessionId)}
                             disabled={revokingId === s.sessionId}
-                            className="h-7 w-7 shrink-0 flex items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-500 hover:text-red-400 hover:border-red-900/50 hover:bg-red-950/20 transition-all disabled:opacity-40 cursor-pointer"
+                            className="h-6 w-6 sm:h-7 sm:w-7 shrink-0 flex items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-500 hover:text-red-400 hover:border-red-900/50 hover:bg-red-950/20 transition-all disabled:opacity-40 cursor-pointer"
                             title="Revoke this session"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                           </button>
                         )}
                       </li>
@@ -416,12 +416,12 @@ export default function Dashboard() {
             </div>
 
             {/* Simulated Live Terminal logs */}
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-6 backdrop-blur-xl shadow-2xl">
-              <h2 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2 font-mono">
-                <span className="h-2.5 w-2.5 rounded-full bg-indigo-500 inline-block animate-pulse" /> SIMULATION_TERMINAL_LOGS
+            <div className="rounded-2xl border border-slate-900 bg-slate-900/40 p-4 sm:p-6 backdrop-blur-xl shadow-2xl">
+              <h2 className="text-xs sm:text-sm font-bold text-slate-300 mb-3 sm:mb-4 flex items-center gap-2 font-mono">
+                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-indigo-500 inline-block animate-pulse" /> SIMULATION_TERMINAL_LOGS
               </h2>
 
-              <div className="bg-slate-950 rounded-lg p-4 font-mono text-[10px] text-slate-400 space-y-1.5 leading-normal border border-slate-900 select-none">
+              <div className="bg-slate-950 rounded-lg p-3 sm:p-4 font-mono text-[9px] sm:text-[10px] text-slate-400 space-y-1 sm:space-y-1.5 leading-normal border border-slate-900 select-none">
                 <div><span className="text-indigo-400">[info]</span> Booting auth module rehydration sequence...</div>
                 <div><span className="text-indigo-400">[info]</span> Found cached credentials. Verifying session integrity...</div>
                 <div><span className="text-emerald-400">[success]</span> Decoded claims: sub={user?.userId?.substring(0, 8)}, tenant={user?.tenantId || 'central'}, role={currentRole}</div>
