@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { Button } from '../../shared/ui/button.jsx'
 import { buildBaseHostUrl } from '../../shared/config/runtime-config.js'
@@ -89,6 +89,11 @@ export default function Login() {
   }, [clearError])
 
   // ─── AUTO-SUBMIT: return from /challenge or /otp ─────────────────────────────
+  //
+  // Flow:
+  //   captchaDone=true  → CAPTCHA cookie is now set → re-submit credentials
+  //   otpDone=true      → OTP cookie is now set     → call completeLogin()
+  //
   useEffect(() => {
     if (hasAutoSubmitted.current) return
 
@@ -159,6 +164,7 @@ export default function Login() {
               { replace: true }
             )
           }
+          // other errors shown on form via store
         }
       }
     }
@@ -201,16 +207,12 @@ export default function Login() {
         )
         return
       }
+      // Other errors (invalid credentials, lockout, etc.) show via store's error state
     }
   }
 
   return (
-    <div className="h-screen bg-[#f4f6f4] flex overflow-hidden relative">
-      {/* Background decorative elements */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#d8f3dc]/40 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#52b788]/30 rounded-full blur-[120px]" />
-      </div>
+    <div className="h-screen bg-[#f8fafc] flex overflow-hidden relative">
 
       {/* Logo - Top Left Corner */}
       <div className="absolute top-6 left-6 z-20">
@@ -229,41 +231,19 @@ export default function Login() {
 
       {/* Left Side - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
-
-        <div className="w-full max-w-md mt-12">
+        <div className="w-full max-w-[480px] bg-white border border-gray-200/80 rounded-3xl p-8 shadow-md hover:shadow-lg hover:border-gray-300/60 transition-all duration-300">
           
           {/* Heading */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8 text-center"
-          >
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">Welcome back!</h1>
-            <p className="text-gray-600 text-base leading-relaxed">Please enter your details to sign in to your account</p>
-          </motion.div>
+          <div className="mb-6 text-center">
+            <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">Welcome back!</h1>
+            <p className="text-gray-500 text-sm leading-relaxed">Please enter your details to sign in to your account</p>
+          </div>
 
           {/* Form */}
-          <motion.form
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Error Message */}
             {error && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
-              >
+              <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 <AlertCircle className="h-5 w-5 shrink-0 text-red-500 mt-0.5" />
                 <div className="leading-normal">
                   <span className="font-semibold">Sign in failed: </span>
@@ -271,16 +251,11 @@ export default function Login() {
                     ? `Your account has been locked. Try again in ${Math.floor(lockoutTimeLeft / 60)} minutes ${lockoutTimeLeft % 60} seconds.`
                     : error}
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Email Input */}
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.35 }}
-              className="space-y-2"
-            >
+            <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 block">
                 Email address
               </label>
@@ -300,12 +275,7 @@ export default function Login() {
             </div>
 
             {/* Password Input */}
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-2"
-            >
+            <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 block">
                 Password
               </label>
@@ -355,11 +325,7 @@ export default function Login() {
             </div>
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isLoading || !identifier || !password}
-              className="w-full flex items-center justify-center gap-2 h-12 mt-2 bg-slate-900 hover:bg-slate-850 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-            >
+            <div>
               <Button
                 type="submit"
                 disabled={isLoading || !identifier || !password}
@@ -374,23 +340,20 @@ export default function Login() {
                   'Sign In'
                 )}
               </Button>
-            </motion.div>
+            </div>
 
             {/* Divider */}
-            <div className="relative pt-4 pb-2">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-[#f4f6f4] text-gray-500">Or continue with</span>
-              </div>
+            <div className="relative flex py-4 items-center">
+              <div className="flex-grow border-t border-gray-200"></div>
+              <span className="flex-shrink mx-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Or continue with</span>
+              <div className="flex-grow border-t border-gray-200"></div>
             </div>
 
             {/* Social Login Buttons */}
             <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center h-12 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm cursor-pointer"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -398,36 +361,28 @@ export default function Login() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                <span className="text-sm font-medium text-gray-700">Google</span>
               </button>
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center h-12 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
-                <span className="text-sm font-medium text-gray-700">Facebook</span>
               </button>
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 h-12 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
+                className="flex items-center justify-center h-12 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="#000000" viewBox="0 0 24 24">
                   <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                 </svg>
-                <span className="text-sm font-medium text-gray-700">Apple</span>
               </button>
             </div>
-          </motion.form>
+          </form>
 
           {/* Footer */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-4 text-center"
-          >
+          <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
               <a href={buildBaseHostUrl('/register')} className="font-semibold text-gray-900 hover:text-gray-700 transition-colors">
@@ -438,19 +393,20 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right Side - Professional Cockpit Image */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-950">
         <img
           src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1920&q=80"
-          alt="Professional Driving Simulator Cockpit"
-          className="absolute inset-0 w-full h-full object-cover opacity-85 scale-105 select-none"
+          alt="Professional Driving"
+          className="absolute inset-0 w-full h-full object-cover opacity-90 scale-105 select-none"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1a472a]/85 to-[#2d6a4f]/75" />
-        <div className="relative z-10 flex flex-col justify-center items-center p-16 text-white">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-slate-900/50 to-[#1a472a]/20" />
+        <div className="absolute -right-20 -bottom-20 w-[300px] h-[300px] bg-[#52b788]/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute -left-10 -top-10 w-[200px] h-[200px] bg-[#52b788]/10 rounded-full blur-[80px] pointer-events-none" />
+        <div className="relative z-10 flex flex-col justify-between h-full p-16 pt-32 text-white">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
             className="space-y-6 max-w-lg"
           >
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-semibold text-emerald-400">
@@ -465,34 +421,32 @@ export default function Login() {
             </p>
           </motion.div>
 
-          {/* Statistics Block */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-auto pt-6 space-y-6"
           >
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-slate-800/80">
-              <div>
-                <div className="text-3xl font-extrabold text-white">500+</div>
-                <div className="text-slate-400 text-xs mt-1 uppercase tracking-wider font-bold">Schools</div>
+            <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/10">
+              <div className="space-y-1">
+                <div className="text-2xl lg:text-3xl font-extrabold text-white">500+</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Schools</div>
               </div>
-              <div>
-                <div className="text-3xl font-extrabold text-white">10K+</div>
-                <div className="text-slate-400 text-xs mt-1 uppercase tracking-wider font-bold">Students</div>
+              <div className="space-y-1">
+                <div className="text-2xl lg:text-3xl font-extrabold text-white">10K+</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Students</div>
               </div>
-              <div>
-                <div className="text-3xl font-extrabold text-white">98%</div>
-                <div className="text-slate-400 text-xs mt-1 uppercase tracking-wider font-bold">Success</div>
+              <div className="space-y-1">
+                <div className="text-2xl lg:text-3xl font-extrabold text-white">98%</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Success Rate</div>
               </div>
             </div>
-            <p className="text-[11px] text-slate-500 select-none">
+            <p className="text-[10px] text-slate-400 select-none">
               © {new Date().getFullYear()} DriveSchool SaaS. Unified administrative control portal.
             </p>
           </motion.div>
         </div>
       </div>
-
     </div>
   )
 }
