@@ -20,48 +20,48 @@ export default function TenantError() {
   const isSuspended = type === 'suspended'
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-slate-950 text-slate-100 px-4 overflow-hidden">
+    <div className="relative flex min-h-screen items-center justify-center bg-[#f4f6f4] text-gray-900 px-4 overflow-hidden select-none font-['Plus_Jakarta_Sans',_sans-serif]">
       {/* Ambient background glow blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className={`absolute top-1/2 left-1/2 w-[400px] h-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px] ${
-          isSuspended ? 'bg-amber-600/15' : 'bg-red-600/15'
+        <div className={`absolute top-1/2 left-1/2 w-[350px] h-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px] ${
+          isSuspended ? 'bg-amber-500/5' : 'bg-red-500/5'
         }`} />
-        <div className="absolute top-1/3 left-1/4 w-[250px] h-[250px] bg-indigo-600/10 rounded-full blur-[100px]" />
+        <div className="absolute top-1/3 left-1/4 w-[250px] h-[250px] bg-[#52b788]/10 rounded-full blur-[80px]" />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md rounded-3xl border border-slate-900 bg-slate-900/40 p-8 text-center backdrop-blur-xl shadow-2xl shadow-slate-950/50"
+        transition={{ duration: 0.4 }}
+        className="relative z-10 w-full max-w-md bg-white border border-gray-200/60 rounded-[32px] p-8 md:p-10 text-center shadow-md"
       >
-        {/* Animated warning/error icon */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/30 shadow-lg shadow-indigo-500/5 select-none">
+        {/* Status Badge Warning/Error Icon */}
+        <div className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border shadow-sm ${
+          isSuspended 
+            ? 'bg-amber-50 border-amber-100 text-amber-600' 
+            : 'bg-red-50 border-red-100 text-red-500'
+        }`}>
           {isSuspended ? (
-            <div className="text-amber-400">
-              <AlertTriangle className="h-8 w-8 animate-pulse" />
-            </div>
+            <AlertTriangle className="h-8 w-8 animate-pulse" />
           ) : (
-            <div className="text-red-400">
-              <ShieldAlert className="h-8 w-8 animate-pulse" />
-            </div>
+            <ShieldAlert className="h-8 w-8 animate-pulse" />
           )}
         </div>
 
         {/* Heading */}
-        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent mb-3">
+        <h1 className="text-2xl font-black text-gray-900 tracking-tight mb-2.5">
           {isSuspended ? 'Access Suspended' : 'School Not Found'}
         </h1>
 
         {/* Message */}
-        <p className="text-sm leading-relaxed text-slate-400 mb-8 px-2">
+        <p className="text-sm leading-relaxed text-gray-500 mb-8 px-2 font-medium">
           {isSuspended ? (
             <>
-              The driving school subscription context for <span className="font-semibold text-amber-300 font-mono">"{slug}"</span> is currently suspended. Please reach out to your school administrator or support to reactivate your portal.
+              The driving school subscription context for <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md font-mono">"{slug}"</span> is currently suspended. Please reach out to your school administrator or support to reactivate your portal.
             </>
           ) : (
             <>
-              We could not find an active tenancy node matching the slug identifier <span className="font-semibold text-red-300 font-mono">"{slug || 'unknown'}"</span>. Please check the school ID or contact your administrator.
+              We could not find an active tenancy node matching the slug identifier <span className="font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-md font-mono">"{slug || 'unknown'}"</span>. Please check the school ID or contact your administrator.
             </>
           )}
         </p>
@@ -70,22 +70,18 @@ export default function TenantError() {
         <div className="flex flex-col gap-3">
           <Button
             onClick={handleBackToLogin}
-            className={`w-full flex items-center justify-center gap-2 h-12 font-semibold rounded-2xl shadow-lg transition-all duration-300 ${
-              isSuspended
-                ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white shadow-amber-950/20'
-                : 'bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white border border-slate-800'
-            }`}
+            className="w-full flex items-center justify-center gap-2 h-12 bg-[#1a472a] hover:bg-[#2d6a4f] text-white font-bold rounded-2xl shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4.5 w-4.5" />
             Return to Sign In
           </Button>
 
           <Button
             onClick={() => navigate('/')}
             variant="outline"
-            className="w-full h-12 border-slate-800 text-slate-400 hover:bg-slate-900 hover:text-white rounded-2xl transition-all duration-300"
+            className="w-full h-12 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 font-bold rounded-2xl shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
           >
-            <Globe className="h-4 w-4 mr-2" />
+            <Globe className="h-4.5 w-4.5" />
             Visit Landing Page
           </Button>
         </div>

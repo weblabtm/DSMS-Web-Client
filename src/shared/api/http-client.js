@@ -60,6 +60,7 @@
 
 import { useAuthStore } from '../store/authStore.js'
 import { refreshSession } from './authApi.js'
+import { getRuntimeApiBaseUrl } from '../config/runtime-config.js'
 
 /**
  * Singleton promise for the in-flight token refresh.
@@ -89,6 +90,26 @@ const toJsonBody = async (response) => {
 }
 
 /**
+ * Resolve the full request URL by prepending the runtime API base URL.
+ * On localhost/dev, this returns a relative path (so the Vite proxy works).
+ * On Vercel/production, this prepends the absolute server URL (e.g. https://dsms-server.vercel.app)
+ * so requests go to the API server, not the frontend origin.
+ *
+ * @param {string} path  Relative path (e.g. '/tenant/slug/abc') or absolute URL
+ * @returns {string}
+ */
+const resolveFullUrl = (path) => {
+    // Already an absolute URL — pass through unchanged
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path
+    }
+    const base = getRuntimeApiBaseUrl()
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`
+    // base may be '' (relative) in local dev — that's correct
+    return `${base}${normalizedPath}`
+}
+
+/**
  * Ensure paths that are not already absolute URLs start with a leading slash.
  * Absolute URLs (http:// or https://) are passed through unchanged so callers
  * can optionally provide a full URL.
@@ -96,6 +117,9 @@ const toJsonBody = async (response) => {
  * @param {string} path
  * @returns {string}
  */
+// NOTE: resolveRequestPath is kept for reference but superseded by resolveFullUrl below.
+// resolveFullUrl prepends the runtime API base URL so requests reach the actual
+// API server on production (Vercel) instead of the frontend origin.
 const resolveRequestPath = (path) => {
     if (path.startsWith('http://') || path.startsWith('https://')) {
         return path
@@ -187,7 +211,12 @@ export async function requestJson(path, options = {}) {
         credentials: 'same-origin',
     }
 
-    const requestPath = resolveRequestPath(path)
+    // ⚠️  Use resolveFullUrl (not resolveRequestPath) to prepend the runtime API
+    //     base URL. On production (Vercel), the frontend and API are on different
+    //     origins. Without this, relative paths like '/tenant/slug/...' would hit
+    //     the frontend's own domain and get back the SPA's index.html (200 OK),
+    //     which causes silent data corruption (e.g. tenant.isActive = undefined).
+    const requestPath = resolveFullUrl(path)
     let response = await fetch(requestPath, requestOptions)
 
     // ── Step 4: Silent token refresh on 401 ──────────────────────────────
