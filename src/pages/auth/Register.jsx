@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Sparkles,
   Eye,
@@ -16,7 +16,6 @@ import {
   Loader2,
   Check,
   X,
-  Server,
   Activity
 } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
@@ -245,28 +244,6 @@ export default function Register() {
     } else {
       setVerificationError('Invalid verification code. Please check your inbox.')
     }
-  }
-
-  const handleStep2Next = (e) => {
-    e.preventDefault()
-    setValidationError('')
-
-    if (!schoolName) {
-      setValidationError('Driving school name is required.')
-      return
-    }
-
-    if (!tenantId) {
-      setValidationError('Driving school slug ID is required.')
-      return
-    }
-
-    if (isSlugAvailable === false) {
-      setValidationError('This slug ID is unavailable. Choose a different one.')
-      return
-    }
-
-    setStep(3)
   }
 
   const handleDeploySchool = async (e) => {
