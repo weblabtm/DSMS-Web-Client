@@ -43,7 +43,9 @@ import {
   Edit2,
   Filter,
   Download,
-  HelpCircle
+  HelpCircle,
+  Activity,
+  Globe
 } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { useAuthStore } from '../../shared/store/authStore'
@@ -70,12 +72,12 @@ function injectSkeletonKeyframes() {
   document.head.appendChild(style)
 }
 
-function PageFade({ children, pageKey }) {
+function PageFade({ children, pageKey, className }) {
   return (
     <div
       key={pageKey}
       style={{ animation: 'pageFadeIn 0.25s ease-out both' }}
-      className="w-full"
+      className={`w-full ${className || ''}`}
     >
       {children}
     </div>
@@ -707,14 +709,15 @@ function ProfileSettingsPanel({ currentUser, onUpdateProfile, onTriggerToast }) 
   )
 }
 
-function SettingsPageLayout({ section, setSection, onTriggerToast, currentUser, onUpdateProfile }) {
+function SettingsPageLayout({ section, setSection, onTriggerToast, currentUser, onUpdateProfile, sessions, sessionsLoading, fetchSessions, handleRevoke, revokingId, user }) {
   const SETTINGS_SECTIONS = [
     { id: 'profile',       label: 'Profile',         icon: User },
+    { id: 'sessions',      label: 'Active Sessions', icon: Activity },
     { id: 'general',       label: 'General Settings',icon: Settings }
   ]
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 h-full items-start">
+    <div className="flex flex-col md:flex-row gap-6 h-full items-start overflow-hidden w-full">
       {/* Settings sidebar */}
       <aside className="w-full md:w-56 flex-shrink-0 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3 px-3">Category</p>
@@ -722,11 +725,15 @@ function SettingsPageLayout({ section, setSection, onTriggerToast, currentUser, 
           {SETTINGS_SECTIONS.map(s => {
             const Icon = s.icon
             return (
-              <button key={s.id} onClick={() => setSection(s.id)}
+              <button
+                type="button"
+                key={s.id}
+                onClick={() => setSection(s.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all text-left cursor-pointer
                   ${section === s.id
                     ? 'bg-[#d8f3dc] text-[#1a472a]'
-                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'}`}>
+                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'}`}
+              >
                 <Icon size={16} className="flex-shrink-0" />
                 {s.label}
               </button>
@@ -736,12 +743,22 @@ function SettingsPageLayout({ section, setSection, onTriggerToast, currentUser, 
       </aside>
 
       {/* Content panel */}
-      <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100/80 w-full">
+      <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100/80 w-full overflow-y-auto h-full min-h-0">
         {section === 'profile'  && (
           <ProfileSettingsPanel 
             currentUser={currentUser} 
             onUpdateProfile={onUpdateProfile} 
             onTriggerToast={onTriggerToast} 
+          />
+        )}
+        {section === 'sessions' && (
+          <ActiveSessionsSettingsPanel 
+            sessions={sessions}
+            sessionsLoading={sessionsLoading}
+            fetchSessions={fetchSessions}
+            handleRevoke={handleRevoke}
+            revokingId={revokingId}
+            user={user}
           />
         )}
         {section === 'general'  && (
@@ -750,6 +767,151 @@ function SettingsPageLayout({ section, setSection, onTriggerToast, currentUser, 
           />
         )}
       </div>
+    </div>
+  )
+}
+
+function ActiveSessionsSettingsPanel({ sessions, sessionsLoading, fetchSessions, handleRevoke, revokingId, user }) {
+  const [currentTime, setCurrentTime] = useState(() => Date.now())
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now())
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const getDeviceIcon = (devicePlatform) => {
+    const platform = devicePlatform?.toLowerCase() || ''
+    return platform.includes('mobile') || platform.includes('ios') || platform.includes('android') ? Smartphone : Monitor
+  }
+
+  const getDeviceName = (deviceOs, devicePlatform) => {
+    const os = deviceOs || 'Unknown Device'
+    const platform = devicePlatform || ''
+    if (platform.includes('mobile') || platform.includes('ios') || platform.includes('android')) {
+      return os.includes('iOS') ? 'iPhone/iPad' : 'Android Device'
+    }
+    return os.includes('Windows') ? 'Windows PC' : os.includes('Mac') ? 'Mac' : 'Desktop'
+  }
+
+  const formatLastActive = (timestamp, now) => {
+    const diff = now - timestamp
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+
+    if (diff < 0 || minutes < 1) return 'Just now'
+    if (minutes < 60) return `${minutes}m ago`
+    if (hours < 24) return `${hours}h ago`
+    return `${days}d ago`
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">Active Sessions</h3>
+          <p className="text-xs text-gray-500 mt-1">Manage and monitor devices currently connected to your school tenant workspace.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => fetchSessions(true)}
+          disabled={sessionsLoading}
+          className="h-8 w-8 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 hover:text-gray-900 transition-all hover:shadow-sm cursor-pointer disabled:opacity-50"
+        >
+          <RefreshCw size={14} className={sessionsLoading ? 'animate-spin' : ''} />
+        </button>
+      </div>
+
+      {sessionsLoading && sessions.length === 0 ? (
+        <div className="py-12 flex flex-col items-center justify-center text-gray-400 gap-2">
+          <RefreshCw size={24} className="animate-spin text-[#1a472a]" />
+          <span className="text-xs font-medium">Retrieving secure session nodes...</span>
+        </div>
+      ) : sessions.length === 0 ? (
+        <div className="py-12 text-center text-gray-500">
+          <Monitor size={36} className="mx-auto text-gray-300 mb-2" />
+          <p className="text-sm font-semibold">No active sessions found</p>
+          <p className="text-xs text-gray-400 mt-1">Your session is initialized via temporary token credentials.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {sessions.map(s => {
+            const isCurrent = s.sessionId === user?.sessionId
+            const DeviceIcon = getDeviceIcon(s.devicePlatform)
+            const deviceName = getDeviceName(s.deviceOs, s.devicePlatform)
+            const platform = s.devicePlatform || 'Desktop'
+            
+            return (
+              <div
+                key={s.sessionId}
+                className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col justify-between relative group ${
+                  isCurrent 
+                    ? 'bg-[#f0fdf4]/50 border-[#b7e4c7] hover:border-[#74c69d]' 
+                    : 'bg-white border-gray-100 hover:border-gray-300 hover:shadow-md'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                    isCurrent ? 'bg-[#d8f3dc] text-[#1a472a]' : 'bg-gray-50 text-gray-400'
+                  }`}>
+                    <DeviceIcon size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-sm font-bold text-gray-800 truncate">{deviceName}</span>
+                      {isCurrent ? (
+                        <span className="text-[9px] font-bold bg-[#1a472a] text-white px-2 py-0.5 rounded-full uppercase tracking-wider scale-95 shrink-0">
+                          Active Now
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full uppercase tracking-wider scale-95 shrink-0">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5 font-medium">{s.deviceOs || 'System OS'} · {platform}</p>
+                    <div className="flex items-center gap-4 mt-2 text-[10px] text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Clock size={11} />
+                        Started: {new Date(s.createdAt * 1000).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center gap-1 flex-shrink-0">
+                        <Globe size={11} />
+                        Last Active: {formatLastActive(s.createdAt * 1000, currentTime)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {!isCurrent && (
+                  <div className="mt-4 pt-3 border-t border-gray-50 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleRevoke(s.sessionId)}
+                      disabled={revokingId === s.sessionId}
+                      className="text-xs font-bold text-red-650 hover:text-red-750 hover:bg-red-55/60 px-3 py-1.5 rounded-lg border border-red-100 bg-white hover:border-red-200 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {revokingId === s.sessionId ? (
+                        <>
+                          <RefreshCw size={12} className="animate-spin" />
+                          Terminating...
+                        </>
+                      ) : (
+                        <>
+                          <LogOut size={12} />
+                          Revoke Access
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -1564,14 +1726,18 @@ export default function TenantDashboard() {
         </header>
 
         {/* WORKSPACE AREA */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+        <main className={`flex-1 p-6 ${
+          (activeTab === 'settings' || activeTab === 'profile')
+            ? 'overflow-hidden flex flex-col h-full space-y-4'
+            : 'overflow-y-auto space-y-6'
+        }`}>
           {loading ? (
             <div className="flex flex-col items-center justify-center h-full space-y-3">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1a472a] border-t-transparent" />
               <span className="text-sm font-semibold text-gray-600">Rotating control node keys...</span>
             </div>
           ) : (
-            <PageFade pageKey={activeTab}>
+            <PageFade pageKey={activeTab} className={(activeTab === 'settings' || activeTab === 'profile') ? 'h-full flex flex-col overflow-hidden min-h-0' : ''}>
               {activeTab === 'dashboard' && (
                 <div className="space-y-6">
                   {/* Dashboard Header */}
@@ -2174,18 +2340,26 @@ export default function TenantDashboard() {
               )}
 
               {(activeTab === 'settings' || activeTab === 'profile') && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 flex-1 flex flex-col overflow-hidden min-h-0 space-y-4">
                   <PageHeader
                     title="Control Configuration"
                     subtitle="Manage personal records, UI preferences, and authentication rules."
                   />
-                  <SettingsPageLayout
-                    section={settingsSection}
-                    setSection={setSettingsSection}
-                    onTriggerToast={addToast}
-                    currentUser={currentUser}
-                    onUpdateProfile={(updatedData) => setCurrentUser(prev => ({ ...prev, ...updatedData }))}
-                  />
+                  <div className="flex-grow flex-1 min-h-0 overflow-hidden">
+                    <SettingsPageLayout
+                      section={settingsSection}
+                      setSection={setSettingsSection}
+                      onTriggerToast={addToast}
+                      currentUser={currentUser}
+                      onUpdateProfile={(updatedData) => setCurrentUser(prev => ({ ...prev, ...updatedData }))}
+                      sessions={sessions}
+                      sessionsLoading={sessionsLoading}
+                      fetchSessions={fetchSessions}
+                      handleRevoke={handleRevoke}
+                      revokingId={revokingId}
+                      user={user}
+                    />
+                  </div>
                 </div>
               )}
             </PageFade>
