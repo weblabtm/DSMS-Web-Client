@@ -60,8 +60,8 @@ export default function Dashboard() {
       setSessionsLoading(true)
     }
     try {
-      const list = await getActiveSessions()
-      setSessions(list)
+      const { sessions: list } = await getActiveSessions()
+      setSessions(list || [])
     } catch (err) {
       console.warn('Could not load sessions:', err.message)
     } finally {

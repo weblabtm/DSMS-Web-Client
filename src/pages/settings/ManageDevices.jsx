@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Monitor, Smartphone, Globe, Clock, Shield, LogOut, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react'
 import { Button } from '../../shared/ui/button.jsx'
+import { useAuthStore } from '../../shared/store/authStore.js'
 
 export default function ManageDevices() {
   const navigate = useNavigate()
+  const getActiveSessions = useAuthStore((state) => state.getActiveSessions)
+  const revokeSession     = useAuthStore((state) => state.revokeSession)
   const [sessions, setSessions] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -22,35 +25,22 @@ export default function ManageDevices() {
   }, [])
 
   const fetchSessions = useCallback(async () => {
+    await Promise.resolve()
+    setIsLoading(true)
+    setError('')
     try {
-      const response = await fetch('/auth/sessions', {
-        credentials: 'include',
-      })
-      if (!response.ok) {
-        if (response.status === 401) {
-          setTimeout(() => {
-            setError('Authentication required. Please log in to view your sessions.')
-            setIsLoading(false)
-          }, 0)
-          return
-        }
-        throw new Error('Failed to load sessions')
-      }
-      const data = await response.json()
-      setTimeout(() => {
-        setCurrentSessionId(data.currentSessionId)
-        setSessions(data.sessions || [])
-        setIsLoading(false)
-      }, 0)
+      const { sessions, currentSessionId } = await getActiveSessions()
+      setCurrentSessionId(currentSessionId ?? null)
+      setSessions(sessions ?? [])
     } catch {
-      setTimeout(() => {
-        setError('Failed to load sessions')
-        setIsLoading(false)
-      }, 0)
+      setError('Failed to load sessions')
+    } finally {
+      setIsLoading(false)
     }
-  }, [])
+  }, [getActiveSessions])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSessions()
   }, [fetchSessions])
 
@@ -60,11 +50,7 @@ export default function ManageDevices() {
     setSuccess('')
 
     try {
-      const response = await fetch(`/auth/sessions/${sessionId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-      if (!response.ok) throw new Error('Failed to revoke session')
+      await revokeSession(sessionId)
       setSessions(sessions.filter(s => s.sessionId !== sessionId))
       setSuccess('Session revoked successfully')
       setTimeout(() => setSuccess(''), 3000)
@@ -84,15 +70,8 @@ export default function ManageDevices() {
     setSuccess('')
 
     try {
-      // Revoke each non-current session
-      await Promise.all(
-        nonCurrentSessions.map(session =>
-          fetch(`/auth/sessions/${session.sessionId}`, {
-            method: 'DELETE',
-            credentials: 'include',
-          })
-        )
-      )
+      // Revoke each non-current session via the store action (which uses proper auth headers)
+      await Promise.all(nonCurrentSessions.map(session => revokeSession(session.sessionId)))
       await fetchSessions()
       setSuccess(`Revoked ${nonCurrentSessions.length} session(s) successfully`)
       setTimeout(() => setSuccess(''), 3000)

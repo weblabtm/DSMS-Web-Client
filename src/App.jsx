@@ -328,7 +328,7 @@ function App() {
               Add new settings routes here. Wrap with ProtectedRoute and
               allowedRoles as needed.
           ──────────────────────────────────────────────────────────────────── */}
-          <Route path="/settings/devices" element={<ManageDevices />} />
+          <Route path="/settings/devices" element={<ProtectedRoute><ManageDevices /></ProtectedRoute>} />
 
           {/* ── Catch-all ────────────────────────────────────────────────────
               Any unmatched URL redirects to the landing page.

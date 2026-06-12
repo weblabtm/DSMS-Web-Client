@@ -90,10 +90,6 @@ export default function RoleRouting() {
     //   if (userRole === 'Student') targetPath = `/${tenantSlug}/student/dashboard`
     let targetPath = `/${encodeURIComponent(tenantSlug)}/dashboard`
 
-    // Log the routing decision in development to aid debugging.
-    // Remove or guard with import.meta.env.DEV if needed.
-    console.log(`[RoleRouting] plan=${plan}, role=${userRole}, features=${JSON.stringify(featureFlags)} → ${targetPath}`)
-
     hideLoader()
     navigate(targetPath, { replace: true })
   }, [user, tenant, tenantSlug, navigate, showLoader, hideLoader])
