@@ -79,10 +79,11 @@ export default function RoleRouting() {
       return
     }
 
-    // ── Routing inputs ────────────────────────────────────────────────────
+    /* eslint-disable no-unused-vars */
     const plan         = tenant?.plan         || 'Standard'
     const featureFlags = tenant?.featureFlags || []
     const userRole     = user.roles?.[0]      || 'Student'
+    /* eslint-enable no-unused-vars */
 
     // ── Route decision ────────────────────────────────────────────────────
     // TODO: Add per-role or per-plan paths here when new dashboards are built.
