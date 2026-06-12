@@ -343,16 +343,17 @@ export const useAuthStore = create((set, get) => ({
    * Fetch all active sessions for the authenticated user.
    * Used by the ManageDevices / Active Sessions settings page.
    *
-   * @returns {Promise<Array<{ sessionId: string, deviceOs?: string, devicePlatform?: string,
-   *                           deviceFingerprint?: string, createdAt: number, expiresAt: number,
-   *                           rememberMe: boolean }>>}
+   * @returns {Promise<{ sessions: Array<{ sessionId: string, deviceOs?: string, devicePlatform?: string,
+   *                      deviceFingerprint?: string, createdAt: number, expiresAt: number,
+   *                      rememberMe: boolean }>, currentSessionId?: string }>}
    */
   getActiveSessions: async () => {
     const { user } = get()
     const accessToken = user?.accessToken
     if (!accessToken) throw new Error('Not authenticated')
     const data = await authApi.getActiveSessions(accessToken)
-    return data?.sessions ?? []
+    // Return the full response so callers can access both sessions and currentSessionId
+    return { sessions: data?.sessions ?? [], currentSessionId: data?.currentSessionId ?? null }
   },
 
   /**

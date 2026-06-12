@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Shield, AlertCircle, RefreshCw } from 'lucide-react'
+import { Shield, AlertCircle } from 'lucide-react'
 import { getGlobalRuntimeConfig } from '../../shared/config/runtime-config.js'
 import { validateCaptcha } from '../../shared/api/authApi.js'
 import { getDeviceInfo } from '../../shared/utils/deviceInfo.js'
@@ -33,7 +33,7 @@ export default function Challenge() {
   const containerRef = useRef(null)
   const isRendered = useRef(false)
   const [error, setError] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [, setIsLoading] = useState(true)
 
   useEffect(() => {
     const currentContainer = containerRef.current
