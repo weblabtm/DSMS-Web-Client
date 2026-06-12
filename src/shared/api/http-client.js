@@ -60,6 +60,7 @@
 
 import { useAuthStore } from '../store/authStore.js'
 import { refreshSession } from './authApi.js'
+import { getRuntimeApiBaseUrl } from '../config/runtime-config.js'
 
 /**
  * Singleton promise for the in-flight token refresh.
@@ -89,7 +90,7 @@ const toJsonBody = async (response) => {
 }
 
 /**
- * Ensure paths that are not already absolute URLs start with a leading slash.
+ * Ensure paths that are not already absolute URLs start with a leading slash and prepend the API base URL.
  * Absolute URLs (http:// or https://) are passed through unchanged so callers
  * can optionally provide a full URL.
  *
@@ -100,7 +101,13 @@ const resolveRequestPath = (path) => {
     if (path.startsWith('http://') || path.startsWith('https://')) {
         return path
     }
-    return path.startsWith('/') ? path : `/${path}`
+    const normalized = path.startsWith('/') ? path : `/${path}`
+    try {
+        const baseUrl = getRuntimeApiBaseUrl()
+        return baseUrl ? `${baseUrl}${normalized}` : normalized
+    } catch {
+        return normalized
+    }
 }
 
 /**
