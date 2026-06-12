@@ -450,8 +450,8 @@ export default function SuperAdminDashboard() {
   const fetchSessions = async (showToast = true) => {
     if (showToast) setSessionsLoading(true)
     try {
-      const list = await getActiveSessions()
-      setSessions(list)
+      const { sessions: list } = await getActiveSessions()
+      setSessions(list || [])
       if (showToast) {
         addToast('success', 'Sessions loaded', 'Operator connection sessions updated.')
       }
