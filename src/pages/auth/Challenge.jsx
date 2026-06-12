@@ -82,8 +82,8 @@ export default function Challenge() {
                 // Validate with server → sets captcha_verified_token cookie bound to this device
                 const response = await validateCaptcha(token, deviceInfo)
 
-                 // Return control to redirect target, passing the token
-                 handleRedirect(true, response?.token)
+                // Return control to redirect target, passing the token
+                handleRedirect(true, response?.token)
               } catch (err) {
                 setError(err.message || 'Failed to complete security challenge. Please try again.')
                 isRendered.current = false
@@ -156,12 +156,6 @@ export default function Challenge() {
 
               {/* CAPTCHA container */}
               <div className="flex flex-col items-center justify-center py-4 min-h-[78px] gap-4">
-                {isLoading && (
-                  <div className="flex items-center gap-2 text-gray-500 text-sm">
-                    <RefreshCw className="h-4 w-4 animate-spin text-[#52b788]" />
-                    Loading security check...
-                  </div>
-                )}
                 <div ref={containerRef} />
               </div>
 
