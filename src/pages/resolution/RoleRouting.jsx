@@ -79,20 +79,17 @@ export default function RoleRouting() {
       return
     }
 
-    // ── Routing inputs ────────────────────────────────────────────────────
+    /* eslint-disable no-unused-vars */
     const plan         = tenant?.plan         || 'Standard'
     const featureFlags = tenant?.featureFlags || []
     const userRole     = user.roles?.[0]      || 'Student'
+    /* eslint-enable no-unused-vars */
 
     // ── Route decision ────────────────────────────────────────────────────
     // TODO: Add per-role or per-plan paths here when new dashboards are built.
     // Example structure to follow:
     //   if (userRole === 'Student') targetPath = `/${tenantSlug}/student/dashboard`
     let targetPath = `/${encodeURIComponent(tenantSlug)}/dashboard`
-
-    // Log the routing decision in development to aid debugging.
-    // Remove or guard with import.meta.env.DEV if needed.
-    console.log(`[RoleRouting] plan=${plan}, role=${userRole}, features=${JSON.stringify(featureFlags)} → ${targetPath}`)
 
     hideLoader()
     navigate(targetPath, { replace: true })

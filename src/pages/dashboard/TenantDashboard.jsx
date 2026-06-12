@@ -1414,8 +1414,8 @@ export default function TenantDashboard() {
       setSessionsLoading(true)
     }
     try {
-      const list = await getActiveSessions()
-      setSessions(list)
+      const { sessions: list } = await getActiveSessions()
+      setSessions(list || [])
       if (showLoading) {
         addToast('success', 'Sessions loaded', 'Session nodes updated.')
       }
