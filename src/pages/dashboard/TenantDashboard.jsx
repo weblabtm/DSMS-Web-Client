@@ -1330,10 +1330,20 @@ export default function TenantDashboard() {
 
   // Settings & Profile mock states
   const [settingsSection, setSettingsSection] = useState('profile')
-  const [currentUser, setCurrentUser] = useState({
-    name: user?.userId ? (user.userId.length > 15 ? user.userId.substring(0, 12) + '...' : user.userId) : 'system_user',
-    email: user?.userId ? `${user.userId.toLowerCase().substring(0, 8)}@dsms.com` : 'user@dsms.com',
-    bio: 'Multi-tenant driving academy administrator & scheduling operator.'
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedFirst = localStorage.getItem('dsms_admin_firstName') || ''
+    const savedLast = localStorage.getItem('dsms_admin_lastName') || ''
+    const savedPhone = localStorage.getItem('dsms_admin_phoneNumber') || ''
+    const name = (savedFirst || savedLast)
+      ? `${savedFirst} ${savedLast}`
+      : (user?.userId ? (user.userId.length > 15 ? user.userId.substring(0, 12) + '...' : user.userId) : 'system_user')
+    const email = user?.userId ? `${user.userId.toLowerCase().substring(0, 8)}@dsms.com` : 'user@dsms.com'
+    return {
+      name,
+      email,
+      phone: savedPhone || '+1 555-0199',
+      bio: 'Multi-tenant driving academy administrator & scheduling operator.'
+    }
   })
 
   const userId = user?.userId
