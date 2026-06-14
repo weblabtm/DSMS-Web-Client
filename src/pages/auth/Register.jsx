@@ -11,7 +11,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Mail,
-  Key,
   Building,
   Loader2,
   Check,
@@ -85,7 +84,7 @@ export default function Register() {
   // ─────────────────────────────────────────────────────────────────────────────
   // Core Registration States
   // ─────────────────────────────────────────────────────────────────────────────
-  const [step, setStep] = useState(1) // Wizard steps: 1, 2, 3 (Only in Public mode)
+  const [step, setStep] = useState(1) // Wizard steps: 1, 2, 3, 4 (Only in Public mode)
 
   // Step 1: School Administration Account
   const [identifier, setIdentifier] = useState('')
@@ -94,9 +93,12 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  // Step 1.5: Email Verification
-  const [emailVerificationInput, setEmailVerificationInput] = useState('')
-  const [mockVerificationCode] = useState('5588') // Mocked code
+  // Step 2: Personal
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')  // Step 1.5: Email Verification
+  const [pin, setPin] = useState(['', '', '', '', '', ''])
+  const [mockVerificationCode] = useState('558822') // Mocked code
   const [verificationError, setVerificationError] = useState('')
   const [otpDispatchStatus, setOtpDispatchStatus] = useState('')
 
@@ -207,9 +209,31 @@ export default function Register() {
     return true
   }
 
-  const handleStep1Next = async (e) => {
+  const handleStep1Next = (e) => {
     e.preventDefault()
-    if (!validateStep1()) {
+    if (validateStep1()) {
+      setValidationError('')
+      setStep(2) // Move to step 2 (Personal)
+    }
+  }
+
+  const validateStep2 = () => {
+    setValidationError('')
+    if (!firstName.trim() || !lastName.trim() || !phoneNumber.trim()) {
+      setValidationError('First name, last name, and phone number are required.')
+      return false
+    }
+    const phoneRegex = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/
+    if (!phoneRegex.test(phoneNumber.trim())) {
+      setValidationError('Please enter a valid phone number.')
+      return false
+    }
+    return true
+  }
+
+  const handleStep2Next = async (e) => {
+    e.preventDefault()
+    if (!validateStep2()) {
       return
     }
 
@@ -224,10 +248,14 @@ export default function Register() {
         role: 'Tenant Admin',
       })
 
+      localStorage.setItem('dsms_admin_firstName', firstName.trim())
+      localStorage.setItem('dsms_admin_lastName', lastName.trim())
+      localStorage.setItem('dsms_admin_phoneNumber', phoneNumber.trim())
+
       setTenantAdminSession(session)
       setOtpDispatchStatus(`An OTP has been sent to ${identifier} after your account was created.`)
-      setEmailVerificationInput('')
-      setStep(2) // Transition directly to Step 2 (Verification OTP)
+      setPin(['', '', '', '', '', ''])
+      setStep(3) // Transition directly to Step 3 (Verification OTP)
     } catch (err) {
       setValidationError(err?.message || 'Unable to create the tenant admin account.')
     } finally {
@@ -235,11 +263,57 @@ export default function Register() {
     }
   }
 
+  const handlePinChange = (value, index) => {
+    const cleanVal = value.replace(/\D/g, '')
+    if (!cleanVal) {
+      const newPin = [...pin]
+      newPin[index] = ''
+      setPin(newPin)
+      return
+    }
+
+    const digits = cleanVal.split('')
+    const newPin = [...pin]
+    let pinIdx = index
+    for (let i = 0; i < digits.length && pinIdx < 6; i++) {
+      newPin[pinIdx] = digits[i]
+      pinIdx++
+    }
+    setPin(newPin)
+
+    // Focus next input
+    if (pinIdx < 6) {
+      const nextInput = document.getElementById(`pin-${pinIdx}`)
+      if (nextInput) {
+        nextInput.focus()
+      }
+    }
+  }
+
+  const handleKeyDown = (e, index) => {
+    if (e.key === 'Backspace') {
+      if (!pin[index] && index > 0) {
+        const newPin = [...pin]
+        newPin[index - 1] = ''
+        setPin(newPin)
+        const prevInput = document.getElementById(`pin-${index - 1}`)
+        if (prevInput) {
+          prevInput.focus()
+        }
+      } else {
+        const newPin = [...pin]
+        newPin[index] = ''
+        setPin(newPin)
+      }
+    }
+  }
+
   const handleVerifyEmailCode = (e) => {
     e.preventDefault()
-    if (emailVerificationInput === mockVerificationCode) {
+    const enteredPin = pin.join('')
+    if (enteredPin === mockVerificationCode) {
       setVerificationError('')
-      setStep(3) // Transition directly to Step 3 (School Config)
+      setStep(4) // Transition directly to Step 4 (School Config)
       setValidationError('')
     } else {
       setVerificationError('Invalid verification code. Please check your inbox.')
@@ -606,7 +680,7 @@ export default function Register() {
               {/* Heading */}
               <div className="text-center">
                 <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">Create Your Driving School</h2>
-                <p className="text-slate-600 font-medium text-sm mt-1">Deploy your autonomous school administrative dashboard in 3 easy steps.</p>
+                <p className="text-slate-600 font-medium text-sm mt-1">Deploy your autonomous school administrative dashboard in 4 easy steps.</p>
               </div>
 
               {/* Premium Stepper Progress Indicator */}
@@ -614,11 +688,11 @@ export default function Register() {
                 <div className="absolute top-[20px] left-0 right-0 h-[3px] bg-slate-200/70 rounded-full" />
                 <div
                   className="absolute top-[20px] left-0 h-[3px] bg-[#1a472a] rounded-full transition-all duration-300"
-                  style={{ width: `${((step - 1) / 2) * 100}%` }}
+                  style={{ width: `${((step - 1) / 3) * 100}%` }}
                 />
                 
                 <div className="relative flex justify-between z-10">
-                  {[1, 2, 3].map((num) => {
+                  {[1, 2, 3, 4].map((num) => {
                     const isCompleted = step > num;
                     const isActive = step === num;
                     return (
@@ -639,8 +713,9 @@ export default function Register() {
                         </button>
                         <span className={`text-[10px] font-bold uppercase tracking-wider mt-2 transition-colors duration-300 ${isActive ? 'text-[#1a472a]' : 'text-slate-400'}`}>
                           {num === 1 && 'Credentials'}
-                          {num === 2 && 'Verification'}
-                          {num === 3 && 'School Config'}
+                          {num === 2 && 'Personal'}
+                          {num === 3 && 'Verification'}
+                          {num === 4 && 'School Config'}
                         </span>
                       </div>
                     )
@@ -734,25 +809,87 @@ export default function Register() {
 
                   <Button
                     type="submit"
-                    disabled={isProvisioningAdmin}
-                    className="w-full h-12 flex items-center justify-center gap-2 mt-4 bg-[#1a472a] hover:bg-[#2d6a4f] text-white font-semibold rounded-2xl shadow-lg shadow-[#1a472a]/20 transition-all duration-300"
+                    className="w-full h-12 flex items-center justify-center gap-2 mt-4 bg-[#1a472a] hover:bg-[#2d6a4f] text-white font-semibold rounded-2xl shadow-lg shadow-[#1a472a]/20 transition-all duration-300 cursor-pointer"
                   >
-                    {isProvisioningAdmin ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin text-white" />
-                        Creating Admin...
-                      </>
-                    ) : (
-                      <>
-                        Continue to Verification <ArrowRight className="h-4.5 w-4.5" />
-                      </>
-                    )}
+                    Continue <ArrowRight className="h-4.5 w-4.5" />
                   </Button>
                 </form>
               )}
 
-              {/* STEP 2: Email Verification */}
+              {/* STEP 2: Personal */}
               {step === 2 && (
+                <form
+                  onSubmit={handleStep2Next}
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">First Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. John"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:border-slate-300"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Last Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Doe"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:border-slate-300"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Phone Number</label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="e.g. +1 555-0100"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:border-slate-300"
+                    />
+                  </div>
+
+                  <div className="flex gap-4 pt-1">
+                    <Button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      className="flex-1 h-12 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 text-slate-700 font-semibold transition-all duration-200 flex items-center justify-center cursor-pointer"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2 inline" /> Back
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isProvisioningAdmin}
+                      className="flex-1 h-12 flex items-center justify-center gap-2 bg-[#1a472a] hover:bg-[#2d6a4f] text-white font-semibold rounded-2xl shadow-lg shadow-[#1a472a]/20 transition-all duration-300"
+                    >
+                      {isProvisioningAdmin ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin text-white" />
+                          Creating Admin...
+                        </>
+                      ) : (
+                        <>
+                          Continue to Verification <ArrowRight className="h-4.5 w-4.5" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              )}
+
+              {/* STEP 3: Email Verification */}
+              {step === 3 && (
                 <form
                   onSubmit={handleVerifyEmailCode}
                   className="space-y-4"
@@ -768,28 +905,30 @@ export default function Register() {
                   </div>
 
                   {verificationError && (
-                    <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-xs text-red-750">
+                    <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-xs text-red-755">
                       <AlertCircle className="h-5 w-5 shrink-0 text-red-650 mt-0.5" />
                       <div className="leading-normal">{verificationError}</div>
                     </div>
                   )}
 
                   {/* Verification PIN Code input */}
-                  <div className="space-y-2.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Verification PIN Code</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-slate-600 transition-colors">
-                        <Key className="h-5 w-5" />
-                      </div>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Enter 4-digit code"
-                        maxLength={4}
-                        value={emailVerificationInput}
-                        onChange={(e) => setEmailVerificationInput(e.target.value.replace(/\D/g, ''))}
-                        className="w-full h-12 pl-12 pr-4 rounded-2xl border border-slate-200 bg-white text-base text-slate-900 placeholder:text-slate-400 placeholder:text-sm tracking-widest text-center focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 font-bold shadow-sm"
-                      />
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block text-center">Verification PIN Code</label>
+                    <div className="flex justify-center gap-2">
+                      {[0, 1, 2, 3, 4, 5].map((index) => (
+                        <input
+                          key={index}
+                          id={`pin-${index}`}
+                          type="text"
+                          maxLength={1}
+                          pattern="\d*"
+                          inputMode="numeric"
+                          value={pin[index]}
+                          onChange={(e) => handlePinChange(e.target.value, index)}
+                          onKeyDown={(e) => handleKeyDown(e, index)}
+                          className="w-12 h-12 text-center text-lg font-bold rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm"
+                        />
+                      ))}
                     </div>
                   </div>
 
@@ -802,15 +941,14 @@ export default function Register() {
                   <div className="flex gap-4 pt-1">
                     <Button
                       type="button"
-                      onClick={() => setStep(1)}
-                      variant=""
+                      onClick={() => setStep(2)}
                       className="flex-1 h-12 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 text-slate-700 font-semibold transition-all duration-200 flex items-center justify-center cursor-pointer"
                     >
                       <ArrowLeft className="h-4 w-4 mr-2 inline" /> Back
                     </Button>
                     <Button
                       type="submit"
-                      disabled={emailVerificationInput.length < 4}
+                      disabled={pin.some(digit => digit === '')}
                       className="flex-1 h-12 bg-[#1a472a] hover:bg-[#2d6a4f] text-white font-semibold rounded-2xl shadow-lg shadow-[#1a472a]/20 transition-all duration-300"
                     >
                       Verify PIN &amp; Continue
@@ -819,8 +957,8 @@ export default function Register() {
                 </form>
               )}
 
-              {/* STEP 3: School Workspace Config & Review */}
-              {step === 3 && (
+              {/* STEP 4: School Workspace Config & Review */}
+              {step === 4 && (
                 <div className="space-y-4">
                   {deploymentLogs.length > 0 ? (
                     /* STYLISH VIRTUAL LOG TERMINAL */
@@ -857,7 +995,7 @@ export default function Register() {
                         <div className="space-y-1.5">
                           <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Driving School Name</label>
                           <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-slate-600 transition-colors">
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400 group-focus-within:text-slate-650 transition-colors">
                               <Building className="h-5 w-5" />
                             </div>
                             <input
@@ -872,7 +1010,7 @@ export default function Register() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Subdomain Routing Slug ID</label>
+                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Username</label>
                           <div className="relative group">
                             <input
                               type="text"
@@ -882,8 +1020,8 @@ export default function Register() {
                               onChange={(e) => {
                                 const nextSlug = slugify(e.target.value)
                                 setTenantId(nextSlug)
-                                  setIsSlugAvailable(null)
-                                  setIsSlugChecking(nextSlug.length >= 3)
+                                setIsSlugAvailable(null)
+                                setIsSlugChecking(nextSlug.length >= 3)
                               }}
                               className="w-full h-12 pl-4 pr-12 rounded-2xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 font-mono shadow-sm hover:shadow-md hover:border-slate-300"
                             />
@@ -899,7 +1037,7 @@ export default function Register() {
                                 </div>
                               )}
                               {isSlugAvailable === false && (
-                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-red-600 border border-red-200">
+                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-red-650 border border-red-200">
                                   <X className="h-4 w-4 font-bold" />
                                 </div>
                               )}
@@ -912,10 +1050,10 @@ export default function Register() {
                               <p className="text-[11px] text-emerald-600 font-semibold">✓ Unique endpoint and routing verified.</p>
                             )}
                             {isSlugAvailable === false && (
-                              <p className="text-[11px] text-red-500 font-semibold">✗ Slug ID taken or reserved. Please customize it.</p>
+                              <p className="text-[11px] text-red-500 font-semibold">✗ Username taken or reserved. Please customize it.</p>
                             )}
                             {!tenantId && (
-                              <p className="text-[11px] text-slate-500">The slug scopes your database workspace and URL matching context.</p>
+                              <p className="text-[11px] text-slate-500">The username scopes your database workspace and URL matching context.</p>
                             )}
                           </div>
                         </div>
@@ -927,6 +1065,10 @@ export default function Register() {
                           <ShieldCheck className="h-4 w-4 text-[#1a472a]" /> Owner Identity
                         </span>
                         <div className="flex justify-between items-center text-sm border-t border-slate-100 pt-2.5">
+                          <span className="text-slate-500">Owner Name:</span>
+                          <span className="font-semibold text-slate-900">{firstName} {lastName}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
                           <span className="text-slate-500">Email Address:</span>
                           <span className="font-semibold text-slate-900">{identifier}</span>
                         </div>
@@ -942,7 +1084,7 @@ export default function Register() {
                       <div className="flex gap-4 pt-1">
                         <Button
                           type="button"
-                          onClick={() => setStep(2)}
+                          onClick={() => setStep(3)}
                           variant=""
                           className="flex-1 h-12 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 text-slate-700 font-semibold transition-all duration-200 flex items-center justify-center cursor-pointer"
                         >

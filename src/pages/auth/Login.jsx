@@ -231,7 +231,7 @@ export default function Login() {
 
       {/* Left Side - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-[480px] bg-white border border-gray-200/80 rounded-3xl p-8 shadow-md hover:shadow-lg hover:border-gray-300/60 transition-all duration-300">
+        <div className="w-full max-w-[440px] bg-white border border-gray-200/80 rounded-3xl p-8 shadow-md hover:shadow-lg hover:border-gray-300/60 transition-all duration-300">
           
           {/* Heading */}
           <div className="mb-6 text-center">
@@ -254,31 +254,40 @@ export default function Login() {
               </div>
             )}
 
-            {/* Email Input */}
+            {/* Email / Phone Input */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 block">
-                Email address
+                Email address / Phone
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 group-focus-within:text-gray-600 transition-colors">
                   <Mail className="h-5 w-5" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="Enter your email"
+                  placeholder="Enter your email or phone number"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full h-12 pl-12 pr-4 rounded-2xl border-2 border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:border-gray-300"
+                  className="w-full h-12 pl-12 pr-4 rounded-2xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:border-gray-300"
                 />
               </div>
             </div>
 
             {/* Password Input */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 block">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-gray-700">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => navigate('/resetPassword/request', { state: { email: identifier } })}
+                  className="text-xs font-semibold text-[#1a472a] hover:text-[#2d6a4f] hover:underline transition-colors cursor-pointer"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 group-focus-within:text-gray-600 transition-colors">
                   <Lock className="h-5 w-5" />
@@ -289,7 +298,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-12 pl-12 pr-12 rounded-2xl border-2 border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:border-gray-300"
+                  className="w-full h-12 pl-12 pr-12 rounded-2xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#52b788] focus:ring-4 focus:ring-[#52b788]/20 transition-all duration-300 shadow-sm hover:shadow-md hover:border-gray-300"
                 />
                 <button
                   type="button"
@@ -297,15 +306,6 @@ export default function Login() {
                   className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer group-focus-within:text-gray-600"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              <div className="text-right pt-0.5">
-                <button
-                  type="button"
-                  onClick={() => navigate('/resetPassword/request', { state: { email: identifier } })}
-                  className="text-sm font-semibold text-gray-900 hover:text-gray-700 transition-colors"
-                >
-                  Forgot password?
                 </button>
               </div>
             </div>
