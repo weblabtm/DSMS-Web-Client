@@ -45,7 +45,9 @@ import {
   Download,
   HelpCircle,
   Activity,
-  Globe
+  Globe,
+  Eye,
+  ConciergeBell
 } from 'lucide-react'
 import { useAuth } from '../../shared/hooks/useAuth'
 import { useAuthStore } from '../../shared/store/authStore'
@@ -67,6 +69,17 @@ function injectSkeletonKeyframes() {
     @keyframes pageFadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+    /* Hide native webkit calendar/clock indicator in time inputs */
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      background: none !important;
+      display: none !important;
+      -webkit-appearance: none !important;
+      margin: 0 !important;
+      width: 0 !important;
+      height: 0 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
     }
   `
   document.head.appendChild(style)
@@ -544,16 +557,30 @@ function DarkCard({ title, children, className = '' }) {
   )
 }
 
+function formatLabel(label) {
+  if (typeof label !== 'string') return label
+  const match = label.match(/^(.*?)\s*\((optional|OPTIONAL)\)$/i)
+  if (match) {
+    return (
+      <>
+        {match[1]}
+        <span className="text-[10px] font-normal text-gray-400 normal-case ml-1.5">(optional)</span>
+      </>
+    )
+  }
+  return label
+}
+
 function Input({ label, id, error, hint, icon, ...props }) {
   return (
     <div className="space-y-1.5 w-full">
-      {label && <label htmlFor={id} className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{label}</label>}
+      {label && <label htmlFor={id} className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{formatLabel(label)}</label>}
       <div className="relative">
         {icon && (
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{icon}</span>
         )}
         <input id={id} {...props}
-          className={`w-full rounded-xl border text-sm py-2.5 outline-none transition-all
+          className={`w-full rounded-xl border text-sm py-2.5 outline-none transition-all placeholder:text-xs
             ${icon ? 'pl-9 pr-3' : 'px-3.5'}
             ${error
               ? 'border-red-300 focus:ring-2 focus:ring-red-200 focus:border-red-400'
@@ -568,7 +595,7 @@ function Input({ label, id, error, hint, icon, ...props }) {
 function Select({ label, id, options, error, ...props }) {
   return (
     <div className="space-y-1.5 w-full">
-      {label && <label htmlFor={id} className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{label}</label>}
+      {label && <label htmlFor={id} className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{formatLabel(label)}</label>}
       <div className="relative">
         <select id={id} {...props}
           className={`w-full rounded-xl border text-sm pl-3.5 pr-8 py-2.5 bg-white outline-none transition-all appearance-none cursor-pointer
@@ -584,9 +611,9 @@ function Select({ label, id, options, error, ...props }) {
 function Textarea({ label, id, error, ...props }) {
   return (
     <div className="space-y-1.5 w-full">
-      {label && <label htmlFor={id} className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{label}</label>}
+      {label && <label htmlFor={id} className="text-xs font-bold text-gray-500 uppercase tracking-wider block">{formatLabel(label)}</label>}
       <textarea id={id} rows={4} {...props}
-        className={`w-full rounded-xl border text-sm px-3.5 py-2.5 outline-none resize-none transition-all
+        className={`w-full rounded-xl border text-sm px-3.5 py-2.5 outline-none resize-none transition-all placeholder:text-xs
           ${error ? 'border-red-300' : 'border-gray-200 focus:ring-2 focus:ring-[#d8f3dc] focus:border-[#52b788]'}`} />
     </div>
   )
@@ -1089,10 +1116,16 @@ function EmptyState({ icon, title, description, action }) {
   )
 }
 
-function DataTable({ columns, data, onRowClick, selectable, actions }) {
+function DataTable({ columns, data, onRowClick, selectable, actions, onViewSelected, onEditSelected, onDeleteSelected, onExportSelected }) {
   const [selected, setSelected] = useState([])
   const [sortCol, setSortCol] = useState(null)
   const [sortDir, setSortDir] = useState("asc")
+
+  const [prevData, setPrevData] = useState(data)
+  if (data !== prevData) {
+    setPrevData(data)
+    setSelected([])
+  }
 
   const toggleRow = (id) =>
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -1116,8 +1149,52 @@ function DataTable({ columns, data, onRowClick, selectable, actions }) {
       {selected.length > 0 && (
         <div className="flex items-center gap-3 px-4 py-2 mb-2 rounded-xl bg-[#d8f3dc] text-[#1a472a]">
           <span className="text-sm font-medium">{selected.length} selected</span>
-          <Button size="xs" variant="danger" icon={<Trash2 size={12}/>}>Delete</Button>
-          <Button size="xs" variant="outline">Export</Button>
+          {selected.length === 1 && onViewSelected && (
+            <Button
+              size="xs"
+              variant="outline"
+              icon={<Eye size={12}/>}
+              onClick={() => {
+                const item = data.find(r => r.id === selected[0])
+                if (item) onViewSelected(item)
+              }}
+            >
+              View More
+            </Button>
+          )}
+          {selected.length === 1 && onEditSelected && (
+            <Button
+              size="xs"
+              variant="outline"
+              icon={<Edit2 size={12}/>}
+              onClick={() => {
+                const item = data.find(r => r.id === selected[0])
+                if (item) onEditSelected(item)
+              }}
+            >
+              Edit
+            </Button>
+          )}
+          {onDeleteSelected && (
+            <Button
+              size="xs"
+              variant="danger"
+              icon={<Trash2 size={12}/>}
+              onClick={() => onDeleteSelected(selected)}
+            >
+              Delete
+            </Button>
+          )}
+          {onExportSelected && (
+            <Button
+              size="xs"
+              variant="outline"
+              icon={<Download size={12}/>}
+              onClick={() => onExportSelected(selected)}
+            >
+              Export
+            </Button>
+          )}
         </div>
       )}
       <table className="w-full text-sm text-left">
@@ -1164,7 +1241,7 @@ function DataTable({ columns, data, onRowClick, selectable, actions }) {
               ))}
               {actions && (
                 <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center justify-end gap-1.5">
                     {actions(row)}
                   </div>
                 </td>
@@ -1232,10 +1309,18 @@ function ConfirmDialog({ open, onClose, onConfirm, title, message, danger }) {
 // ==========================================
 
 export default function TenantDashboard() {
-  const { user, currentRole, getInviteableRoles, logout } = useAuth()
+  const { user, currentRole, logout } = useAuth()
   const { getActiveSessions, revokeSession } = useAuthStore()
   const navigate = useNavigate()
-  const inviteableRoles = getInviteableRoles()
+  const inviteableRoles = useMemo(() => {
+    if (currentRole === 'Tenant Admin') {
+      return ['Tenant Admin', 'Front Desk']
+    }
+    if (currentRole === 'Front Desk') {
+      return ['Front Desk', 'Instructor', 'Student']
+    }
+    return []
+  }, [currentRole])
   const canInvite = inviteableRoles.length > 0
 
   // System States
@@ -1313,18 +1398,230 @@ export default function TenantDashboard() {
   const [newTaskPriority, setNewTaskPriority] = useState('low')
   const [newTaskDue, setNewTaskDue] = useState('')
 
-  // Team Members States
-  const [teamMembers, setTeamMembers] = useState([
-    { id: 1, name: 'Alice Johnson', role: 'Instructor', email: 'alice.j@dsms.com', status: 'completed', statusLabel: 'Active', classes: 24, rating: 4.9 },
-    { id: 2, name: 'Bob Smith', role: 'Instructor', email: 'bob.s@dsms.com', status: 'completed', statusLabel: 'Active', classes: 18, rating: 4.7 },
-    { id: 3, name: 'Charlie Davis', role: 'Front Desk Operator', email: 'charlie.d@dsms.com', status: 'progress', statusLabel: 'On Leave', classes: 0, rating: 4.5 },
-    { id: 4, name: 'Diana Prince', role: 'Instructor', email: 'diana.p@dsms.com', status: 'completed', statusLabel: 'Active', classes: 30, rating: 5.0 },
-    { id: 5, name: 'Ethan Hunt', role: 'Front Desk Operator', email: 'ethan.h@dsms.com', status: 'pending', statusLabel: 'Inactive', classes: 0, rating: 4.2 }
+  // Registry Sub-sidebar and Users States
+  const [activeRoleTab, setActiveRoleTab] = useState(() => {
+    if (currentRole === 'Front Desk') return 'Front Desk'
+    return 'Tenant Admin'
+  })
+
+  const [prevRole, setPrevRole] = useState(currentRole)
+  if (currentRole !== prevRole) {
+    setPrevRole(currentRole)
+    setActiveRoleTab(currentRole === 'Front Desk' ? 'Front Desk' : 'Tenant Admin')
+  }
+  const [registeredUsers, setRegisteredUsers] = useState([
+    // Tenant Admins
+    {
+      id: 101,
+      role: 'Tenant Admin',
+      firstName: 'John',
+      lastName: 'Doe',
+      name: 'John Doe',
+      email: 'john.doe@apex.com',
+      phone: '+1 555-0199',
+      tenantName: 'Apex Driving Academy',
+      businessReg: 'TX-998811',
+      address: '123 Main St, Austin, TX',
+      status: 'completed',
+      statusLabel: 'Active'
+    },
+    {
+      id: 102,
+      role: 'Tenant Admin',
+      firstName: 'Sarah',
+      lastName: 'Connor',
+      name: 'Sarah Connor',
+      email: 'sconnor@cyberdyne.org',
+      phone: '+1 555-0244',
+      tenantName: 'Cyberdyne Motors',
+      businessReg: 'CA-332211',
+      address: '456 Elm St, Los Angeles, CA',
+      status: 'completed',
+      statusLabel: 'Active'
+    },
+    // Instructors
+    {
+      id: 1,
+      role: 'Instructor',
+      firstName: 'Alice',
+      lastName: 'Johnson',
+      name: 'Alice Johnson',
+      email: 'alice.j@dsms.com',
+      phone: '+1 555-0101',
+      employeeId: 'INS-001',
+      licenseNumber: 'LC-99221',
+      specialization: 'Car (Manual/Automatic)',
+      status: 'completed',
+      statusLabel: 'Active',
+      classes: 24,
+      rating: 4.9
+    },
+    {
+      id: 2,
+      role: 'Instructor',
+      firstName: 'Bob',
+      lastName: 'Smith',
+      name: 'Bob Smith',
+      email: 'bob.s@dsms.com',
+      phone: '+1 555-0102',
+      employeeId: 'INS-002',
+      licenseNumber: 'LC-88112',
+      specialization: 'Truck (Heavy Duty)',
+      status: 'completed',
+      statusLabel: 'Active',
+      classes: 18,
+      rating: 4.7
+    },
+    {
+      id: 4,
+      role: 'Instructor',
+      firstName: 'Diana',
+      lastName: 'Prince',
+      name: 'Diana Prince',
+      email: 'diana.p@dsms.com',
+      phone: '+1 555-0104',
+      employeeId: 'INS-004',
+      licenseNumber: 'LC-77334',
+      specialization: 'Motorcycle',
+      status: 'completed',
+      statusLabel: 'Active',
+      classes: 30,
+      rating: 5.0
+    },
+    // Front Desk
+    {
+      id: 3,
+      role: 'Front Desk',
+      firstName: 'Charlie',
+      lastName: 'Davis',
+      name: 'Charlie Davis',
+      email: 'charlie.d@dsms.com',
+      phone: '+1 555-0103',
+      employeeId: 'FD-001',
+      shift: 'Morning (08:00 AM - 04:00 PM)',
+      departmentBranch: 'Central Operations',
+      status: 'progress',
+      statusLabel: 'On Leave',
+      classes: 0,
+      rating: 4.5
+    },
+    {
+      id: 5,
+      role: 'Front Desk',
+      firstName: 'Ethan',
+      lastName: 'Hunt',
+      name: 'Ethan Hunt',
+      email: 'ethan.h@dsms.com',
+      phone: '+1 555-0105',
+      employeeId: 'FD-002',
+      shift: 'Custom (04:00 PM - 12:00 AM)',
+      departmentBranch: 'Emergency Services',
+      status: 'pending',
+      statusLabel: 'Inactive',
+      classes: 0,
+      rating: 4.2
+    },
+    // Students
+    {
+      id: 201,
+      role: 'Student',
+      firstName: 'Peter',
+      lastName: 'Parker',
+      name: 'Peter Parker',
+      email: 'peter.p@dailybugle.com',
+      phone: '+1 555-0201',
+      studentId: 'STU-101',
+      dob: '2005-08-10',
+      targetLicense: 'Class D (Standard)',
+      status: 'completed',
+      statusLabel: 'Active'
+    },
+    {
+      id: 202,
+      role: 'Student',
+      firstName: 'Bruce',
+      lastName: 'Wayne',
+      name: 'Bruce Wayne',
+      email: 'bruce.w@waynecorp.com',
+      phone: '+1 555-0202',
+      studentId: 'STU-102',
+      dob: '1995-02-19',
+      targetLicense: 'Class M (Motorcycle)',
+      status: 'progress',
+      statusLabel: 'On Leave'
+    }
   ])
   const [memberModalOpen, setMemberModalOpen] = useState(false)
   const [editingMember, setEditingMember] = useState(null)
-  const [editingMemberRole, setEditingMemberRole] = useState('')
-  const [editingMemberStatus, setEditingMemberStatus] = useState('')
+
+  // Registration Form field states
+  const [formRole, setFormRole] = useState('Tenant Admin')
+  const [formFirstName, setFormFirstName] = useState('')
+  const [formLastName, setFormLastName] = useState('')
+  const [formEmail, setFormEmail] = useState('')
+  const [formPhone, setFormPhone] = useState('')
+  const [formStatus, setFormStatus] = useState('completed')
+  const [formTenantName, setFormTenantName] = useState('')
+  const [formBusinessReg, setFormBusinessReg] = useState('')
+  const [formAddress, setFormAddress] = useState('')
+  const [formPassword, setFormPassword] = useState('')
+  const [formEmployeeId, setFormEmployeeId] = useState('')
+  const [formLicenseNumber, setFormLicenseNumber] = useState('')
+  const [formSpecialization, setFormSpecialization] = useState('')
+  const [formStudentId, setFormStudentId] = useState('')
+  const [formDob, setFormDob] = useState('')
+  const [formTargetLicense, setFormTargetLicense] = useState('')
+  const [formDepartmentBranch, setFormDepartmentBranch] = useState('')
+  const [shiftStart24, setShiftStart24] = useState('08:00')
+  const [shiftEnd24, setShiftEnd24] = useState('16:00')
+  const [shiftName, setShiftName] = useState('Morning')
+  const shiftStartRef = useRef(null)
+  const shiftEndRef = useRef(null)
+
+  const convert24to12 = (time24) => {
+    if (!time24) return ''
+    const [hStr, mStr] = time24.split(':')
+    let h = parseInt(hStr, 10)
+    const m = mStr || '00'
+    const ampm = h >= 12 ? 'PM' : 'AM'
+    h = h % 12
+    if (h === 0) h = 12
+    const hFormatted = String(h).padStart(2, '0')
+    return `${hFormatted}:${m} ${ampm}`
+  }
+
+  const convert12to24 = (time12, ampm) => {
+    if (!time12) return '08:00'
+    const [hStr, mStr] = time12.split(':')
+    let h = parseInt(hStr, 10)
+    const m = mStr || '00'
+    const period = ampm ? ampm.toUpperCase() : 'AM'
+    if (period === 'PM' && h < 12) h += 12
+    if (period === 'AM' && h === 12) h = 0
+    return `${String(h).padStart(2, '0')}:${m}`
+  }
+
+  const [showShiftPicker, setShowShiftPicker] = useState(false)
+  const shiftPickerRef = useRef(null)
+
+  // Close shift picker dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (shiftPickerRef.current && !shiftPickerRef.current.contains(e.target)) {
+        setShowShiftPicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Delete dialog states
+  const [userDeleteConfirmOpen, setUserDeleteConfirmOpen] = useState(false)
+  const [selectedUserIdsForDelete, setSelectedUserIdsForDelete] = useState([])
+
+  // View details modal states
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [viewingMember, setViewingMember] = useState(null)
 
   // Tasks Handlers
   const handleToggleTask = (id) => {
@@ -1383,29 +1680,247 @@ export default function TenantDashboard() {
     setSelectedTaskIdForDelete(null)
   }
 
-  // Team Member Handlers
+  // User Registry Handlers
+  const handleAddMemberClick = () => {
+    setEditingMember(null)
+    setFormRole(activeRoleTab)
+    setFormFirstName('')
+    setFormLastName('')
+    setFormEmail('')
+    setFormPhone('')
+    setFormStatus('completed')
+    setFormTenantName('')
+    setFormBusinessReg('')
+    setFormAddress('')
+    setFormPassword('')
+    setFormEmployeeId('')
+    setFormLicenseNumber('')
+    setFormSpecialization('')
+    setFormStudentId('')
+    setFormDob('')
+    setFormTargetLicense('')
+    setFormDepartmentBranch('')
+    setShiftName('Morning')
+    setShiftStart24('08:00')
+    setShiftEnd24('16:00')
+    setShowShiftPicker(false)
+    setMemberModalOpen(true)
+  }
+
   const handleEditMemberClick = (member) => {
     setEditingMember(member)
-    setEditingMemberRole(member.role)
-    setEditingMemberStatus(member.status)
+    setFormRole(member.role)
+    setFormFirstName(member.firstName || member.name?.split(' ')[0] || '')
+    setFormLastName(member.lastName || member.name?.split(' ').slice(1).join(' ') || '')
+    setFormEmail(member.email || '')
+    setFormPhone(member.phone || '')
+    setFormStatus(member.status || 'completed')
+    setFormTenantName(member.tenantName || '')
+    setFormBusinessReg(member.businessReg || '')
+    setFormAddress(member.address || '')
+    setFormPassword(member.password || '')
+    setFormEmployeeId(member.employeeId || '')
+    setFormLicenseNumber(member.licenseNumber || '')
+    setFormSpecialization(member.specialization || '')
+    setFormStudentId(member.studentId || '')
+    setFormDob(member.dob || '')
+    setFormTargetLicense(member.targetLicense || '')
+    setFormDepartmentBranch(member.departmentBranch || '')
+    // Parse shift presets
+    if (member.shift) {
+      const match = member.shift.match(/^(.*?)\s*\((.*?)\s*(AM|PM)\s*-\s*(.*?)\s*(AM|PM)\)$/i)
+      if (match) {
+        const parsedName = match[1].trim()
+        setShiftName(parsedName === 'Morning' ? 'Morning' : 'Custom')
+        setShiftStart24(convert12to24(match[2], match[3]))
+        setShiftEnd24(convert12to24(match[4], match[5]))
+      } else {
+        setShiftName('Custom')
+        setShiftStart24('08:00')
+        setShiftEnd24('16:00')
+      }
+    } else {
+      setShiftName('Morning')
+      setShiftStart24('08:00')
+      setShiftEnd24('16:00')
+    }
+    setShowShiftPicker(false)
     setMemberModalOpen(true)
   }
 
   const handleSaveMember = () => {
+    if (!formFirstName.trim() || !formLastName.trim() || !formEmail.trim() || !formPhone.trim()) {
+      addToast('error', 'Validation Error', 'First name, last name, email, and phone number are required.')
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formEmail)) {
+      addToast('error', 'Validation Error', 'Please enter a valid email address.')
+      return
+    }
+
     const statusLabelMap = {
       completed: 'Active',
       progress: 'On Leave',
       pending: 'Inactive'
     }
-    setTeamMembers(prev => prev.map(m => m.id === editingMember.id ? { 
-      ...m, 
-      role: editingMemberRole, 
-      status: editingMemberStatus, 
-      statusLabel: statusLabelMap[editingMemberStatus] || 'Active' 
-    } : m))
-    addToast('success', 'Member Record Saved', `Updated details for ${editingMember.name}.`)
+
+    const name = `${formFirstName.trim()} ${formLastName.trim()}`
+    const userData = {
+      role: formRole,
+      firstName: formFirstName.trim(),
+      lastName: formLastName.trim(),
+      name,
+      email: formEmail.trim(),
+      phone: formPhone.trim(),
+      status: formStatus,
+      statusLabel: statusLabelMap[formStatus] || 'Active',
+      tenantName: formRole === 'Tenant Admin' ? formTenantName.trim() : undefined,
+      businessReg: formRole === 'Tenant Admin' ? formBusinessReg.trim() : undefined,
+      address: formRole === 'Tenant Admin' ? formAddress.trim() : undefined,
+      password: formRole === 'Tenant Admin' ? formPassword : undefined,
+      employeeId: (formRole === 'Instructor' || formRole === 'Front Desk') ? formEmployeeId.trim() : undefined,
+      licenseNumber: formRole === 'Instructor' ? formLicenseNumber.trim() : undefined,
+      specialization: formRole === 'Instructor' ? formSpecialization.trim() : undefined,
+      shift: formRole === 'Front Desk'
+        ? `${shiftName === 'Custom' ? 'Custom' : shiftName} (${convert24to12(shiftStart24)} - ${convert24to12(shiftEnd24)})`
+        : undefined,
+      departmentBranch: formRole === 'Front Desk' ? formDepartmentBranch.trim() : undefined,
+      studentId: formRole === 'Student' ? formStudentId.trim() : undefined,
+      dob: formRole === 'Student' ? formDob : undefined,
+      targetLicense: formRole === 'Student' ? formTargetLicense.trim() : undefined,
+    }
+
+    if (editingMember) {
+      setRegisteredUsers(prev => prev.map(m => m.id === editingMember.id ? { ...m, ...userData } : m))
+      addToast('success', 'User Record Updated', `Successfully updated details for ${name}.`)
+    } else {
+      const newUser = {
+        id: Date.now(),
+        classes: formRole === 'Instructor' ? 0 : undefined,
+        rating: formRole === 'Instructor' ? 5.0 : undefined,
+        ...userData
+      }
+      setRegisteredUsers(prev => [newUser, ...prev])
+      addToast('success', 'User Registered', `Successfully registered new ${formRole}: ${name}.`)
+    }
     setMemberModalOpen(false)
     setEditingMember(null)
+  }
+
+  const handleViewMemberClick = (member) => {
+    setViewingMember(member)
+    setViewModalOpen(true)
+  }
+
+  const handleDeleteMemberClick = (ids) => {
+    const idsArray = Array.isArray(ids) ? ids : [ids]
+    setSelectedUserIdsForDelete(idsArray)
+    setUserDeleteConfirmOpen(true)
+  }
+
+  const handleConfirmDeleteUser = () => {
+    if (selectedUserIdsForDelete.length > 0) {
+      if (selectedUserIdsForDelete.length === 1) {
+        const id = selectedUserIdsForDelete[0]
+        const userToDelete = registeredUsers.find(u => u.id === id)
+        const name = userToDelete ? userToDelete.name : 'User'
+        setRegisteredUsers(prev => prev.filter(u => !selectedUserIdsForDelete.includes(u.id)))
+        addToast('success', 'User Deleted', `Successfully removed registration record for ${name}.`)
+      } else {
+        setRegisteredUsers(prev => prev.filter(u => !selectedUserIdsForDelete.includes(u.id)))
+        addToast('success', 'Users Deleted', `Successfully removed registration records for ${selectedUserIdsForDelete.length} selected users.`)
+      }
+    }
+    setUserDeleteConfirmOpen(false)
+    setSelectedUserIdsForDelete([])
+  }
+
+  const getDeleteConfirmMessage = () => {
+    if (selectedUserIdsForDelete.length > 1) {
+      return `Are you sure you want to permanently delete these ${selectedUserIdsForDelete.length} users? This will revoke all active session permissions.`
+    }
+    return "Are you sure you want to permanently delete this user? This will revoke all active session permissions."
+  }
+
+  const getTableColumns = (role) => {
+    const defaultCols = [
+      {
+        key: "name",
+        label: "Name",
+        render: (v, row) => (
+          <div className="flex items-center gap-3">
+            <Avatar name={v} size="sm" />
+            <div>
+              <p className="font-semibold text-gray-900 leading-none">{v}</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">{row.email}</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        key: "phone",
+        label: "Phone Number",
+        render: (v) => <span className="text-gray-650 font-medium text-xs">{v || 'N/A'}</span>
+      }
+    ]
+
+    switch (role) {
+      case 'Tenant Admin':
+        return [
+          ...defaultCols,
+          {
+            key: "tenantName",
+            label: "Tenant Name",
+            render: (v) => <span className="font-semibold text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-0.5 text-xs">{v || 'N/A'}</span>
+          },
+          {
+            key: "status",
+            label: "Status",
+            render: (v, row) => <Badge variant={v} dot>{row.statusLabel}</Badge>
+          }
+        ]
+      case 'Instructor':
+        return [
+          ...defaultCols,
+          {
+            key: "employeeId",
+            label: "Employee ID",
+            render: (v) => <span className="font-mono text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded">{v || 'N/A'}</span>
+          },
+          {
+            key: "status",
+            label: "Status",
+            render: (v, row) => <Badge variant={v} dot>{row.statusLabel}</Badge>
+          }
+        ]
+      case 'Front Desk':
+        return [
+          ...defaultCols,
+          {
+            key: "employeeId",
+            label: "Employee ID",
+            render: (v) => <span className="font-mono text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded">{v || 'N/A'}</span>
+          },
+          {
+            key: "status",
+            label: "Status",
+            render: (v, row) => <Badge variant={v} dot>{row.statusLabel}</Badge>
+          }
+        ]
+      case 'Student':
+        return [
+          ...defaultCols,
+          {
+            key: "studentId",
+            label: "Student ID",
+            render: (v) => <span className="font-mono text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded">{v || 'N/A'}</span>
+          }
+        ]
+      default:
+        return defaultCols
+    }
   }
 
   // Fetch active sessions
@@ -1490,7 +2005,9 @@ export default function TenantDashboard() {
     { icon: CheckSquare, label: 'Tasks', badge: String(tasks.filter(t => !t.done).length), id: 'tasks' },
     { icon: Calendar, label: 'Calendar', id: 'calendar' },
     { icon: BarChart2, label: 'Analytics', id: 'analytics' },
-    { icon: Users, label: 'Teams', id: 'team' }
+    ...(currentRole !== 'Instructor' && currentRole !== 'Student'
+      ? [{ icon: Users, label: 'User Register', id: 'user-register' }]
+      : [])
   ]
 
   const GENERAL_ITEMS = [
@@ -1538,9 +2055,28 @@ export default function TenantDashboard() {
     return filteredTasks.slice(start, start + tasksPerPage)
   }, [filteredTasks, taskPage])
 
-  const filteredTeamMembers = useMemo(() => {
-    return teamMembers.filter(m => m.name.toLowerCase().includes(memberSearch.toLowerCase()))
-  }, [teamMembers, memberSearch])
+  const filteredRoleUsers = useMemo(() => {
+    return registeredUsers.filter(u => {
+      if (u.role !== activeRoleTab) return false
+      const matchQuery = u.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
+                         u.email.toLowerCase().includes(memberSearch.toLowerCase())
+      return matchQuery
+    })
+  }, [registeredUsers, activeRoleTab, memberSearch])
+
+  const registryCategories = useMemo(() => {
+    if (currentRole === 'Front Desk') {
+      return [
+        { id: 'Front Desk', label: 'Front Desk', icon: ConciergeBell },
+        { id: 'Instructor', label: 'Instructor', icon: User },
+        { id: 'Student', label: 'Student', icon: Users }
+      ]
+    }
+    return [
+      { id: 'Tenant Admin', label: 'Tenant Admin', icon: Shield },
+      { id: 'Front Desk', label: 'Front Desk', icon: ConciergeBell }
+    ]
+  }, [currentRole])
 
   // Quota allocation segments
   const activeSessionsCount = sessions.length || 1
@@ -2261,54 +2797,75 @@ export default function TenantDashboard() {
                 </div>
               )}
 
-              {activeTab === 'team' && (
+              {activeTab === 'user-register' && (
                 <div className="space-y-6">
                   <PageHeader
-                    title="Cohort Operations & Team"
-                    subtitle="Manage system instructors, operators, and coordinators verified under your local region."
+                    title="User Register"
+                    subtitle="Manage all system tenant administrators, driving instructors, front desk operators, and students."
                     actions={
-                      <Button variant="primary" icon={<UserPlus size={14} />} onClick={() => addToast('info', 'Add Team Member', 'Invite team member dialog triggered. Use Invite Generator to create link.')}>Add Member</Button>
+                      <Button variant="primary" icon={<UserPlus size={14} />} onClick={handleAddMemberClick}>Add User</Button>
                     }
                   />
 
-                  <Card>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 max-w-md">
-                                <Search size={15} className="text-gray-400" />
-                                <input
-                                  placeholder="Search cohort members by name..."
-                                  className="flex-1 bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none"
-                                  value={memberSearch}
-                                  onChange={e => memberSearch === undefined ? undefined : setMemberSearch(e.target.value)}
-                                />
-                              </div>
+                  <div className="flex flex-col lg:flex-row gap-6 items-start">
+                    {/* Sub-sidebar for role categories */}
+                    <aside className="w-full lg:w-56 flex-shrink-0 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3 px-3">Registry Categories</p>
+                      <nav className="space-y-1">
+                        {registryCategories.map(role => {
+                          const RoleIcon = role.icon
+                          const isActive = activeRoleTab === role.id
+                          return (
+                            <button
+                              type="button"
+                              key={role.id}
+                              onClick={() => {
+                                setActiveRoleTab(role.id)
+                                setMemberSearch('')
+                              }}
+                              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all text-left cursor-pointer
+                                ${isActive
+                                  ? 'bg-[#d8f3dc] text-[#1a472a]'
+                                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'}`}
+                            >
+                              <RoleIcon size={16} className="flex-shrink-0" />
+                              {role.label}
+                            </button>
+                          )
+                        })}
+                      </nav>
+                    </aside>
 
-                              <DataTable
-                                columns={[
-                                  { key: "name", label: "Name", render: (v, row) => (
-                                    <div className="flex items-center gap-3">
-                                      <Avatar name={v} size="sm" />
-                                      <div>
-                                        <p className="font-semibold text-gray-900 leading-none">{v}</p>
-                                        <p className="text-[11px] text-gray-400 mt-0.5">{row.email}</p>
-                                      </div>
-                                    </div>
-                                  )},
-                                  { key: "role", label: "Role", render: (v) => <span className="font-medium text-gray-700">{v}</span> },
-                                  { key: "status", label: "Status", render: (v, row) => <Badge variant={v} dot>{row.statusLabel}</Badge> },
-                                  { key: "classes", label: "Completed Classes", render: (v) => <span className="font-mono text-gray-600">{v} classes</span> },
-                                  { key: "rating", label: "Rating", render: (v) => <span className="font-semibold text-amber-600">★ {v}</span> }
-                                ]}
-                                data={filteredTeamMembers}
-                                selectable
-                                actions={(row) => (
-                                  <div className="flex items-center gap-1">
-                                    <IconButton icon={<Edit2 size={13}/>} size="sm" onClick={() => handleEditMemberClick(row)} title="Edit Member Role/Status" />
-                                  </div>
-                                )}
-                              />
+                    {/* Main Table View */}
+                    <div className="flex-1 w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
+                      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 w-full sm:max-w-md">
+                          <Search size={15} className="text-gray-400" />
+                          <input
+                            placeholder={`Search ${activeRoleTab}s by name or email...`}
+                            className="flex-grow bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none"
+                            value={memberSearch}
+                            onChange={e => setMemberSearch(e.target.value)}
+                          />
+                        </div>
+                        <div className="text-xs text-gray-400 shrink-0 font-medium">
+                          Showing <span className="font-semibold text-gray-700">{filteredRoleUsers.length}</span> {activeRoleTab}s
+                        </div>
+                      </div>
+
+                      <DataTable
+                        columns={getTableColumns(activeRoleTab)}
+                        data={filteredRoleUsers}
+                        selectable
+                        onViewSelected={handleViewMemberClick}
+                        onEditSelected={handleEditMemberClick}
+                        onDeleteSelected={handleDeleteMemberClick}
+                        onExportSelected={(selectedIds) => {
+                          addToast('success', 'Export Success', `Successfully exported registration records for ${selectedIds.length} user(s).`)
+                        }}
+                      />
                     </div>
-                  </Card>
+                  </div>
                 </div>
               )}
 
@@ -2416,39 +2973,486 @@ export default function TenantDashboard() {
         danger
       />
 
-      {/* Edit Team Member Modal */}
+      {/* Delete User Confirmation */}
+      <ConfirmDialog
+        open={userDeleteConfirmOpen}
+        onClose={() => setUserDeleteConfirmOpen(false)}
+        onConfirm={handleConfirmDeleteUser}
+        title={selectedUserIdsForDelete.length > 1 ? "Delete Selected Users" : "Delete Registered User"}
+        message={getDeleteConfirmMessage()}
+        danger
+      />
+
+      {/* Register/Edit User Modal */}
       <Modal
         open={memberModalOpen}
         onClose={() => setMemberModalOpen(false)}
-        title={`Edit Member Roster Details: ${editingMember?.name}`}
+        title={editingMember ? `Edit User Details: ${editingMember.name}` : `Register New ${formRole}`}
         footer={
           <>
             <Button variant="outline" onClick={() => setMemberModalOpen(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleSaveMember}>Save Details</Button>
+            <Button variant="primary" onClick={handleSaveMember}>{editingMember ? 'Save Changes' : 'Register User'}</Button>
           </>
         }
       >
-        {editingMember && (
-          <div className="space-y-4">
-            <Select
-              label="Assigned System Role"
-              value={editingMemberRole}
-              onChange={e => setEditingMemberRole(e.target.value)}
-              options={[
-                { value: 'Instructor', label: 'Instructor' },
-                { value: 'Front Desk Operator', label: 'Front Desk Operator' }
-              ]}
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+          {/* Header Role and Availability */}
+          <div className={formRole === 'Student' ? "grid grid-cols-1 gap-4" : "grid grid-cols-1 md:grid-cols-2 gap-4"}>
+            <div>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">System Role</span>
+              <div className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3.5 text-sm font-semibold text-[#1a472a] bg-[#d8f3dc]/30">
+                {formRole}
+              </div>
+            </div>
+            {formRole !== 'Student' && (
+              <Select
+                label="Availability Status"
+                value={formStatus}
+                onChange={e => setFormStatus(e.target.value)}
+                options={[
+                  { value: 'completed', label: 'Active' },
+                  { value: 'progress', label: 'On Leave' },
+                  { value: 'pending', label: 'Inactive' }
+                ]}
+              />
+            )}
+          </div>
+
+          <div className="border-t border-gray-100 my-3" />
+
+          {/* Standard Fields (all roles) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="First Name"
+              placeholder="e.g. John"
+              value={formFirstName}
+              onChange={e => setFormFirstName(e.target.value)}
+              required
             />
-            <Select
-              label="Availability Status"
-              value={editingMemberStatus}
-              onChange={e => setEditingMemberStatus(e.target.value)}
-              options={[
-                { value: 'completed', label: 'Active' },
-                { value: 'progress', label: 'On Leave' },
-                { value: 'pending', label: 'Inactive' }
-              ]}
+            <Input
+              label="Last Name"
+              placeholder="e.g. Doe"
+              value={formLastName}
+              onChange={e => setFormLastName(e.target.value)}
+              required
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Email Address"
+              type="email"
+              placeholder="e.g. john.doe@example.com"
+              value={formEmail}
+              onChange={e => setFormEmail(e.target.value)}
+              required
+            />
+            <Input
+              label="Phone Number"
+              placeholder="e.g. +1 555-0100"
+              value={formPhone}
+              onChange={e => setFormPhone(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Role-Specific Fields */}
+          {formRole === 'Tenant Admin' && (
+            <>
+              <div className="border-t border-gray-100 my-3" />
+              <p className="text-xs font-bold text-[#1a472a] uppercase tracking-wider">Tenant Administration details</p>
+              <div className="grid grid-cols-1 gap-4">
+                <Input
+                  label="Tenant / Learners Name"
+                  placeholder="e.g. Apex Driving School"
+                  value={formTenantName}
+                  onChange={e => setFormTenantName(e.target.value)}
+                  required
+                />
+                <Input
+                  label="Business Registration Number (Optional)"
+                  placeholder="e.g. TX-12345-B"
+                  value={formBusinessReg}
+                  onChange={e => setFormBusinessReg(e.target.value)}
+                  hint="Recommended but optional"
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <Input
+                  label="Address (Optional)"
+                  placeholder="e.g. 123 Main St, Austin, TX"
+                  value={formAddress}
+                  onChange={e => setFormAddress(e.target.value)}
+                />
+              </div>
+              {!editingMember && (
+                <div className="grid grid-cols-1 gap-4">
+                  <Input
+                    label="Password"
+                    type="password"
+                    placeholder="Enter security password"
+                    value={formPassword}
+                    onChange={e => setFormPassword(e.target.value)}
+                    required
+                    hint="Temporary password for self-registration"
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          {formRole === 'Instructor' && (
+            <>
+              <div className="border-t border-gray-100 my-3" />
+              <p className="text-xs font-bold text-[#1a472a] uppercase tracking-wider">Instructor credentials</p>
+              <div className="grid grid-cols-1 gap-4">
+                <Input
+                  label="Employee ID (Optional)"
+                  placeholder="e.g. INS-482"
+                  value={formEmployeeId}
+                  onChange={e => setFormEmployeeId(e.target.value)}
+                />
+                <Input
+                  label="License / Certification Number (Optional)"
+                  placeholder="e.g. LC-89301-A"
+                  value={formLicenseNumber}
+                  onChange={e => setFormLicenseNumber(e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <Input
+                  label="Specialization / Vehicle Type (Optional)"
+                  placeholder="e.g. Class A Commercial Truck, Automatic Sedan"
+                  value={formSpecialization}
+                  onChange={e => setFormSpecialization(e.target.value)}
+                />
+              </div>
+            </>
+          )}
+
+          {formRole === 'Front Desk' && (
+            <>
+              <div className="border-t border-gray-100 my-3" />
+              <p className="text-xs font-bold text-[#1a472a] uppercase tracking-wider">Front Desk staff details</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Employee ID (Optional)"
+                  placeholder="e.g. FD-821"
+                  value={formEmployeeId}
+                  onChange={e => setFormEmployeeId(e.target.value)}
+                />
+                <Input
+                  label="Department / Branch (Optional)"
+                  placeholder="e.g. Downtown Office, Administration"
+                  value={formDepartmentBranch}
+                  onChange={e => setFormDepartmentBranch(e.target.value)}
+                />
+              </div>
+              <div className="relative w-full" ref={shiftPickerRef}>
+                <Input
+                  label="Shift / Working Hours (Optional)"
+                  placeholder="e.g. Morning (8:00 AM - 4:00 PM)"
+                  value={
+                    shiftName === 'Custom'
+                      ? `Custom (${convert24to12(shiftStart24)} - ${convert24to12(shiftEnd24)})`
+                      : `${shiftName} (${convert24to12(shiftStart24)} - ${convert24to12(shiftEnd24)})`
+                  }
+                  readOnly
+                  onClick={() => setShowShiftPicker(true)}
+                  icon={
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowShiftPicker(p => !p)
+                      }}
+                      className="text-gray-400 hover:text-[#1a472a] transition-colors cursor-pointer flex items-center justify-center h-full"
+                    >
+                      <Clock size={15} />
+                    </button>
+                  }
+                />
+
+                {showShiftPicker && (
+                  <div className="absolute left-0 right-0 mt-1.5 p-4 bg-white border border-gray-200/80 rounded-2xl shadow-xl z-50 space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                    {/* Preset Selector */}
+                    <div className="flex gap-3 items-center flex-wrap">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Preset</span>
+                      <div className="flex p-0.5 bg-gray-50 border border-gray-200/80 rounded-xl">
+                        {['Morning', 'Custom'].map(name => {
+                          const isActive = shiftName === name
+                          return (
+                            <button
+                              type="button"
+                              key={name}
+                              onClick={() => {
+                                setShiftName(name)
+                                if (name === 'Morning') {
+                                  setShiftStart24('08:00')
+                                  setShiftEnd24('16:00')
+                                }
+                              }}
+                              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                isActive
+                                  ? 'bg-[#1a472a] text-white shadow-sm'
+                                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+                              }`}
+                            >
+                              {name === 'Morning' ? 'Morning (8:00 AM - 4:00 PM)' : 'Custom'}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Time Range Pickers */}
+                    <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-gray-100">
+                      {/* Start Time */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Start</span>
+                        <div 
+                          className={`relative flex items-center ${
+                            shiftName === 'Custom' ? 'cursor-pointer' : 'cursor-not-allowed'
+                          }`} 
+                          onClick={() => {
+                            if (shiftName === 'Custom') {
+                              shiftStartRef.current?.showPicker()
+                            }
+                          }}
+                        >
+                          <span className={`absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${
+                            shiftName === 'Custom' ? 'text-[#1a472a]' : 'text-gray-400'
+                          }`}>
+                            <Clock size={13} />
+                          </span>
+                          <input
+                            ref={shiftStartRef}
+                            type="time"
+                            className={`w-28 rounded-xl border border-gray-200 text-xs pl-8 pr-2.5 py-1.5 bg-white outline-none focus:ring-2 focus:ring-[#d8f3dc] focus:border-[#52b788] font-medium text-gray-700 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-150 ${
+                              shiftName === 'Custom' ? 'cursor-pointer' : 'cursor-not-allowed'
+                            }`}
+                            value={shiftStart24}
+                            onChange={e => setShiftStart24(e.target.value)}
+                            disabled={shiftName !== 'Custom'}
+                          />
+                        </div>
+                      </div>
+
+                      <span className="text-gray-300 text-sm">—</span>
+
+                      {/* End Time */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">End</span>
+                        <div 
+                          className={`relative flex items-center ${
+                            shiftName === 'Custom' ? 'cursor-pointer' : 'cursor-not-allowed'
+                          }`} 
+                          onClick={() => {
+                            if (shiftName === 'Custom') {
+                              shiftEndRef.current?.showPicker()
+                            }
+                          }}
+                        >
+                          <span className={`absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${
+                            shiftName === 'Custom' ? 'text-[#1a472a]' : 'text-gray-400'
+                          }`}>
+                            <Clock size={13} />
+                          </span>
+                          <input
+                            ref={shiftEndRef}
+                            type="time"
+                            className={`w-28 rounded-xl border border-gray-200 text-xs pl-8 pr-2.5 py-1.5 bg-white outline-none focus:ring-2 focus:ring-[#d8f3dc] focus:border-[#52b788] font-medium text-gray-700 disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-150 ${
+                              shiftName === 'Custom' ? 'cursor-pointer' : 'cursor-not-allowed'
+                            }`}
+                            value={shiftEnd24}
+                            onChange={e => setShiftEnd24(e.target.value)}
+                            disabled={shiftName !== 'Custom'}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {formRole === 'Student' && (
+            <>
+              <div className="border-t border-gray-100 my-3" />
+              <p className="text-xs font-bold text-[#1a472a] uppercase tracking-wider">Student onboarding information</p>
+              <div className="grid grid-cols-1 gap-4">
+                <Input
+                  label="Student ID (Optional)"
+                  placeholder="e.g. STU-209"
+                  value={formStudentId}
+                  onChange={e => setFormStudentId(e.target.value)}
+                />
+                <Input
+                  label="Date of Birth (Optional)"
+                  type="date"
+                  value={formDob}
+                  onChange={e => setFormDob(e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <Input
+                  label="Target License Class (Optional)"
+                  placeholder="e.g. Class D Standard, Commercial Class B"
+                  value={formTargetLicense}
+                  onChange={e => setFormTargetLicense(e.target.value)}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </Modal>
+
+      {/* View User Details Modal */}
+      <Modal
+        open={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        title={`User Details: ${viewingMember?.name}`}
+        footer={
+          <Button variant="outline" onClick={() => setViewModalOpen(false)}>Close</Button>
+        }
+      >
+        {viewingMember && (
+          <div className="space-y-5">
+            {/* Header profile card info */}
+            <div className="relative flex items-center gap-4 bg-gray-50 border border-gray-100 p-4 rounded-2xl">
+              <Avatar name={viewingMember.name} size="lg" />
+              <div>
+                <h4 className="font-bold text-gray-900 text-base leading-snug">{viewingMember.name}</h4>
+                <p className="text-xs text-gray-400 mt-0.5">{viewingMember.email}</p>
+                <div className="mt-2">
+                  <Badge variant="dark">{viewingMember.role}</Badge>
+                </div>
+              </div>
+              {viewingMember.role !== 'Student' && (
+                <div className="absolute top-4 right-4">
+                  <Badge variant={viewingMember.status} dot>{viewingMember.statusLabel}</Badge>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-gray-100" />
+
+            {/* Profile Fields Details */}
+            <div className="space-y-4">
+              <h5 className="text-xs font-bold text-[#1a472a] uppercase tracking-wider">Contact Details</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">First Name</span>
+                  <span className="text-gray-800 font-medium">{viewingMember.firstName || viewingMember.name?.split(' ')[0]}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Last Name</span>
+                  <span className="text-gray-800 font-medium">{viewingMember.lastName || viewingMember.name?.split(' ').slice(1).join(' ')}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Email Address</span>
+                  <span className="text-gray-800 font-medium">{viewingMember.email}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Phone Number</span>
+                  <span className="text-gray-800 font-medium">{viewingMember.phone || 'N/A'}</span>
+                </div>
+              </div>
+
+              {/* Role specific display fields */}
+              {viewingMember.role === 'Tenant Admin' && (
+                <>
+                  <div className="border-t border-gray-100 my-3" />
+                  <h5 className="text-xs font-bold text-[#1a472a] uppercase tracking-wider">Tenant Administration Details</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Tenant / Learners Name</span>
+                      <span className="text-gray-800 font-medium">{viewingMember.tenantName || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Business Registration #</span>
+                      <span className="text-gray-800 font-medium font-mono">{viewingMember.businessReg || 'N/A'}</span>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Address</span>
+                      <span className="text-gray-800 font-medium">{viewingMember.address || 'N/A'}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {viewingMember.role === 'Instructor' && (
+                <>
+                  <div className="border-t border-gray-100 my-3" />
+                  <h5 className="text-xs font-bold text-[#1a472a] uppercase tracking-wider">Instructor Roster Details</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Employee ID</span>
+                      <span className="text-gray-800 font-medium font-mono">{viewingMember.employeeId || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">License Number</span>
+                      <span className="text-gray-800 font-medium">{viewingMember.licenseNumber || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Specialization / Vehicle</span>
+                      <span className="text-gray-800 font-medium">{viewingMember.specialization || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Classes Completed</span>
+                      <span className="text-gray-800 font-medium font-mono">{viewingMember.classes !== undefined ? `${viewingMember.classes} classes` : '0 classes'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Rating</span>
+                      <span className="text-amber-500 font-bold">★ {viewingMember.rating || '5.0'}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {viewingMember.role === 'Front Desk' && (
+                <>
+                  <div className="border-t border-gray-100 my-3" />
+                  <h5 className="text-xs font-bold text-[#1a472a] uppercase tracking-wider">Front Desk Details</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Employee ID</span>
+                      <span className="text-gray-800 font-medium font-mono">{viewingMember.employeeId || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Shift / Hours</span>
+                      <span className="text-gray-800 font-medium">{viewingMember.shift || 'N/A'}</span>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Department / Branch</span>
+                      <span className="text-gray-800 font-medium">{viewingMember.departmentBranch || 'N/A'}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {viewingMember.role === 'Student' && (
+                <>
+                  <div className="border-t border-gray-100 my-3" />
+                  <h5 className="text-xs font-bold text-[#1a472a] uppercase tracking-wider">Student Academic Details</h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Student ID</span>
+                      <span className="text-gray-800 font-medium font-mono">{viewingMember.studentId || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Date of Birth</span>
+                      <span className="text-gray-800 font-medium">{viewingMember.dob || 'N/A'}</span>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block tracking-wider mb-0.5">Target License Class</span>
+                      <span className="text-purple-700 bg-purple-50 border border-purple-100 rounded-lg px-2.5 py-0.5 text-xs font-semibold inline-block">{viewingMember.targetLicense || 'N/A'}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
       </Modal>
